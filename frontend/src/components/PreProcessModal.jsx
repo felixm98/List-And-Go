@@ -116,8 +116,6 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
             </div>
             <p className="text-xs text-gray-400">Lämna tomt för att använda standardprofil</p>
           </div>
-              Standardpris (SEK)
-            </label>
             <input
               type="number"
               value={settings.defaultPrice}
