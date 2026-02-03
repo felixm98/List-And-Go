@@ -1,0 +1,50 @@
+# Render deployment configuration
+services:
+  # Backend API
+  - type: web
+    name: etsy-uploader-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: etsy-uploader-db
+          property: connectionString
+      - key: GROQ_API_KEY
+        sync: false
+      - key: ETSY_API_KEY
+        sync: false
+      - key: ETSY_SHARED_SECRET
+        sync: false
+      - key: ETSY_REDIRECT_URI
+        sync: false
+      - key: FERNET_KEY
+        sync: false
+    rootDir: backend
+
+  # Frontend static site
+  - type: web
+    name: etsy-uploader-frontend
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://etsy-uploader-api.onrender.com
+    rootDir: frontend
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+databases:
+  - name: etsy-uploader-db
+    databaseName: etsy_uploader
+    plan: starter  # Free tier

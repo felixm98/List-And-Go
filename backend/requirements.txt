@@ -1,0 +1,13 @@
+# Backend dependencies for Etsy Bulk Uploader
+flask==3.0.2
+flask-cors==4.0.0
+flask-sqlalchemy==3.1.1
+flask-jwt-extended==4.6.0
+python-dotenv==1.0.1
+groq==0.4.2
+requests==2.31.0
+Pillow==10.2.0
+APScheduler==3.10.4
+psycopg2-binary==2.9.9
+gunicorn==21.2.0
+cryptography==42.0.2

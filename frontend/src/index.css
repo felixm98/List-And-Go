@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  @apply bg-gray-50 text-etsy-black;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 rounded;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded hover:bg-gray-400;
+}
+
+/* Drag and drop animations */
+.drop-zone-active {
+  @apply border-etsy-orange bg-etsy-light scale-[1.02];
+}
+
+/* Card hover effects */
+.listing-card {
+  @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+}
+
+/* SEO Badge colors */
+.seo-excellent {
+  @apply bg-green-100 text-green-700 border-green-300;
+}
+
+.seo-good {
+  @apply bg-yellow-100 text-yellow-700 border-yellow-300;
+}
+
+.seo-poor {
+  @apply bg-red-100 text-red-700 border-red-300;
+}
+
+/* Input focus states */
+input:focus, textarea:focus, select:focus {
+  @apply outline-none ring-2 ring-etsy-orange ring-opacity-50;
+}
+
+/* Button base styles */
+.btn-primary {
+  @apply bg-etsy-orange text-white px-4 py-2 rounded-lg font-medium 
+         hover:bg-etsy-orange-dark transition-colors duration-200
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply bg-white text-etsy-black px-4 py-2 rounded-lg font-medium 
+         border border-gray-300 hover:bg-gray-50 transition-colors duration-200;
+}
+
+/* Tag styles */
+.tag {
+  @apply inline-flex items-center px-2 py-1 rounded-full text-sm 
+         bg-gray-100 text-gray-700 mr-1 mb-1;
+}
+
+.tag-remove {
+  @apply ml-1 text-gray-400 hover:text-red-500 cursor-pointer;
+}
