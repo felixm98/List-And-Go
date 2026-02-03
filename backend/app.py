@@ -56,7 +56,13 @@ def create_app(config_name='default'):
     return app
 
 
+
 app = create_app(os.environ.get('FLASK_ENV', 'development'))
+
+# Root route for Render health check and info
+@app.route('/')
+def index():
+    return 'Etsy Bulk Uploader backend is running!'
 
 
 # ============== Template Routes ==============
