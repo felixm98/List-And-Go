@@ -402,8 +402,12 @@ def create_upload():
             description=listing_data.get('description', ''),
             tags=listing_data.get('tags', []),
             price=listing_data.get('price'),
+            quantity=listing_data.get('quantity', 999),
             category=listing_data.get('category'),
-            seo_score=listing_data.get('seo_score'),
+            taxonomy_id=listing_data.get('categoryId'),
+            shipping_profile_id=listing_data.get('shippingProfileId'),
+            return_policy_id=listing_data.get('returnPolicyId'),
+            seo_score=listing_data.get('seo_score') or listing_data.get('seoScore'),
             images=listing_data.get('images', []),
             videos=listing_data.get('videos', [])
         )
@@ -516,6 +520,108 @@ def upload_video_to_listing(upload_id, listing_id):
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/uploads/<int:upload_id>/listings/<int:listing_id>/images', methods=['POST'])
+@jwt_required()
+def upload_image_to_listing(upload_id, listing_id):
+    """
+    Upload an image file to a specific listing.
+    
+    This endpoint accepts an image file and uploads it to Etsy.
+    The listing must already have an etsy_listing_id from a prior publish.
+    
+    Etsy image requirements:
+    - Max file size: 10MB
+    - Supported formats: JPG, PNG, GIF
+    - Min dimensions: 2000x2000 recommended for quality
+    """
+    user_id = get_jwt_identity()
+    
+    # Validate upload ownership
+    upload = Upload.query.filter_by(id=upload_id, user_id=user_id).first()
+    if not upload:
+        return jsonify({'error': 'Upload not found'}), 404
+    
+    # Get the listing
+    listing = Listing.query.filter_by(id=listing_id, upload_id=upload_id).first()
+    if not listing:
+        return jsonify({'error': 'Listing not found'}), 404
+    
+    if not listing.etsy_listing_id:
+        return jsonify({'error': 'Listing has not been published to Etsy yet'}), 400
+    
+    # Check Etsy connection
+    etsy_token = EtsyToken.query.filter_by(user_id=user_id).first()
+    if not etsy_token:
+        return jsonify({'error': 'Etsy not connected'}), 400
+    
+    # Get image file from request
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image file provided'}), 400
+    
+    image_file = request.files['image']
+    rank = request.form.get('rank', 1, type=int)
+    alt_text = request.form.get('alt_text', '')
+    
+    # Validate file type
+    allowed_extensions = {'.jpg', '.jpeg', '.png', '.gif'}
+    file_ext = os.path.splitext(image_file.filename)[1].lower()
+    if file_ext not in allowed_extensions:
+        return jsonify({'error': f'Invalid image format. Allowed: {", ".join(allowed_extensions)}'}), 400
+    
+    try:
+        access_token = decrypt_token(etsy_token.access_token_encrypted)
+        
+        # Check if token needs refresh
+        if etsy_token.expires_at and etsy_token.expires_at <= datetime.utcnow():
+            refresh_token_str = decrypt_token(etsy_token.refresh_token_encrypted)
+            new_tokens = refresh_access_token(refresh_token_str)
+            
+            etsy_token.access_token_encrypted = encrypt_token(new_tokens['access_token'])
+            etsy_token.refresh_token_encrypted = encrypt_token(new_tokens['refresh_token'])
+            etsy_token.expires_at = datetime.utcnow() + timedelta(seconds=new_tokens['expires_in'])
+            
+            access_token = new_tokens['access_token']
+            db.session.commit()
+        
+        # Read image data
+        image_data = image_file.read()
+        
+        # Check file size (10MB limit)
+        if len(image_data) > 10 * 1024 * 1024:
+            return jsonify({'error': 'Image file too large. Maximum size is 10MB'}), 400
+        
+        # Upload to Etsy
+        result = upload_listing_image(
+            access_token,
+            etsy_token.shop_id,
+            listing.etsy_listing_id,
+            image_data,
+            rank=rank,
+            alt_text=alt_text
+        )
+        
+        # Update listing images metadata
+        images = listing.images or []
+        images.append({
+            'name': image_file.filename,
+            'etsy_image_id': result.get('listing_image_id'),
+            'rank': rank,
+            'uploaded_at': datetime.utcnow().isoformat()
+        })
+        listing.images = images
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Image uploaded successfully',
+            'image_id': result.get('listing_image_id'),
+            'listing_id': listing.id,
+            'rank': rank
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/uploads/<int:upload_id>/publish', methods=['POST'])
 @jwt_required()
 def publish_upload(upload_id):
@@ -551,17 +657,39 @@ def publish_upload(upload_id):
         # Process each listing
         for listing in upload.listings:
             try:
-                # Create draft listing
+                # Build listing data with all available fields
+                listing_data = {
+                    'title': listing.title,
+                    'description': listing.description,
+                    'price': listing.price or 10.0,
+                    'quantity': listing.quantity or 999,
+                    'tags': listing.tags,
+                    'is_digital': True
+                }
+                
+                # Add taxonomy_id if available (category)
+                if listing.taxonomy_id:
+                    listing_data['taxonomy_id'] = listing.taxonomy_id
+                
+                # Add shipping profile if available and valid (not for digital)
+                if listing.shipping_profile_id and listing.shipping_profile_id not in ['digital', 'no_returns']:
+                    try:
+                        listing_data['shipping_profile_id'] = int(listing.shipping_profile_id)
+                    except (ValueError, TypeError):
+                        pass  # Skip if not a valid integer ID
+                
+                # Add return policy if available and valid
+                if listing.return_policy_id and listing.return_policy_id not in ['no_returns', '14_days', '30_days']:
+                    try:
+                        listing_data['return_policy_id'] = int(listing.return_policy_id)
+                    except (ValueError, TypeError):
+                        pass  # Skip if not a valid integer ID
+                
+                # Create draft listing on Etsy
                 etsy_listing = create_draft_listing(
                     access_token,
                     etsy_token.shop_id,
-                    {
-                        'title': listing.title,
-                        'description': listing.description,
-                        'price': listing.price or 10.0,
-                        'tags': listing.tags,
-                        'is_digital': True
-                    }
+                    listing_data
                 )
                 
                 listing.etsy_listing_id = str(etsy_listing['listing_id'])

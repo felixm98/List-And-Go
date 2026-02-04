@@ -44,12 +44,15 @@ function UploadPage({ listings, addListings, updateListing, removeListing, clear
                 'professional mockup', 'high quality'
               ].slice(0, 13),
               category: settings.category,
+              categoryId: settings.categoryId,
               price: settings.defaultPrice || '',
               shippingProfile: settings.shippingProfile,
+              shippingProfileId: settings.shippingProfileId,
               shippingCost: settings.shippingCost,
               shippingTime: settings.shippingTime,
               returnPolicy: settings.returnPolicy,
-              quantity: settings.quantity,
+              returnPolicyId: settings.returnPolicyId,
+              quantity: settings.quantity || 999,
               materials: settings.materials,
               style: style,
               seoScore: Math.floor(70 + Math.random() * 25),
@@ -65,11 +68,26 @@ function UploadPage({ listings, addListings, updateListing, removeListing, clear
   }
   
   const handleUpload = async (listingsToUpload, scheduleDate) => {
+    // Store original File objects for image upload after publishing
+    // Map by folderName for robust matching
+    const imageFilesMap = new Map()
+    const videoFilesMap = new Map()
+    
+    listingsToUpload.forEach(l => {
+      const key = l.folderName || l.id
+      if (l.images && l.images.length > 0) {
+        imageFilesMap.set(key, l.images.filter(img => img.file).map(img => img.file))
+      }
+      if (l.videos && l.videos.length > 0) {
+        videoFilesMap.set(key, l.videos.filter(vid => vid.file).map(vid => vid.file))
+      }
+    })
+    
     // Prepare listings for backend (convert images/videos to metadata, not File objects)
     const listingsPayload = listingsToUpload.map(l => ({
       ...l,
-      images: l.images ? l.images.map(img => ({ name: img.name })) : [],
-      videos: l.videos ? l.videos.map(vid => ({ name: vid.name })) : []
+      images: l.images ? l.images.map(img => ({ name: img.name || img.file?.name })) : [],
+      videos: l.videos ? l.videos.map(vid => ({ name: vid.name || vid.file?.name })) : []
     }))
 
     // Send upload to backend
@@ -79,14 +97,73 @@ function UploadPage({ listings, addListings, updateListing, removeListing, clear
         listingsPayload,
         scheduleDate
       )
-      // Optionally, upload video files separately if backend requires
-      // (You may need to implement a /api/uploads/:id/videos endpoint for actual file upload)
+      
+      // If not scheduled, publish immediately and upload images
+      if (!scheduleDate && uploadResp.id) {
+        // Publish to Etsy to create draft listings
+        const publishResp = await api.publishUpload(uploadResp.id)
+        
+        // Now upload images to each listing
+        if (publishResp.listings) {
+          let imageUploadCount = 0
+          let imageErrorCount = 0
+          
+          for (const listing of publishResp.listings) {
+            // Match listing to original files by folder_name
+            const key = listing.folder_name || listing.id
+            const imageFiles = imageFilesMap.get(key) || []
+            const videoFiles = videoFilesMap.get(key) || []
+            
+            // Only upload if listing was successfully created on Etsy
+            if (!listing.etsy_listing_id) {
+              console.warn(`Skipping image upload for listing ${listing.id} - no Etsy listing ID`)
+              continue
+            }
+            
+            // Upload images (rank 1 is primary)
+            for (let rank = 0; rank < imageFiles.length; rank++) {
+              try {
+                await api.uploadImageToListing(
+                  uploadResp.id,
+                  listing.id,
+                  imageFiles[rank],
+                  rank + 1  // Etsy ranks are 1-based
+                )
+                imageUploadCount++
+              } catch (imgErr) {
+                console.error(`Failed to upload image ${rank + 1} for listing ${listing.id}:`, imgErr)
+                imageErrorCount++
+              }
+            }
+            
+            // Upload videos
+            for (const videoFile of videoFiles) {
+              try {
+                await api.uploadVideoToListing(uploadResp.id, listing.id, videoFile)
+              } catch (vidErr) {
+                console.error(`Failed to upload video for listing ${listing.id}:`, vidErr)
+              }
+            }
+          }
+          
+          if (imageUploadCount > 0) {
+            console.log(`Successfully uploaded ${imageUploadCount} images`)
+          }
+          if (imageErrorCount > 0) {
+            console.warn(`Failed to upload ${imageErrorCount} images`)
+          }
+        }
+        
+        // Update the upload response for the UI
+        addUpload(publishResp)
+      } else {
+        addUpload(uploadResp)
+      }
 
-      addUpload(uploadResp)
       listingsToUpload.forEach(l => removeListing(l.id))
       alert(scheduleDate 
         ? `${listingsToUpload.length} produkter schemalagda för publicering!`
-        : `${listingsToUpload.length} produkter laddas upp till Etsy som drafts...`
+        : `${listingsToUpload.length} produkter har laddats upp till Etsy som drafts!`
       )
     } catch (err) {
       alert('Fel vid uppladdning: ' + (err.message || err))

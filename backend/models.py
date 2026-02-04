@@ -102,7 +102,13 @@ class Listing(db.Model):
     description = db.Column(db.Text)
     tags = db.Column(db.JSON)  # List of up to 13 tags
     price = db.Column(db.Float)
+    quantity = db.Column(db.Integer, default=999)
     category = db.Column(db.String(200))
+    
+    # Etsy-specific IDs
+    taxonomy_id = db.Column(db.Integer)  # Category ID for Etsy
+    shipping_profile_id = db.Column(db.String(50))  # Shipping profile ID
+    return_policy_id = db.Column(db.String(50))  # Return policy ID
     
     # SEO
     seo_score = db.Column(db.Integer)
@@ -128,7 +134,11 @@ class Listing(db.Model):
             'description': self.description,
             'tags': self.tags or [],
             'price': self.price,
+            'quantity': self.quantity,
             'category': self.category,
+            'taxonomy_id': self.taxonomy_id,
+            'shipping_profile_id': self.shipping_profile_id,
+            'return_policy_id': self.return_policy_id,
             'seo_score': self.seo_score,
             'etsy_listing_id': self.etsy_listing_id,
             'etsy_url': self.etsy_url,

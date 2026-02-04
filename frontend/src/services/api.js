@@ -306,6 +306,30 @@ class ApiService {
     return response.json()
   }
 
+  async uploadImageToListing(uploadId, listingId, imageFile, rank = 1, altText = '') {
+    const formData = new FormData()
+    formData.append('image', imageFile)
+    formData.append('rank', rank)
+    if (altText) {
+      formData.append('alt_text', altText)
+    }
+
+    const response = await fetch(`${API_BASE}/api/uploads/${uploadId}/listings/${listingId}/images`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.accessToken}`
+      },
+      body: formData
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Image upload failed')
+    }
+
+    return response.json()
+  }
+
   // ============== Health ==============
   async healthCheck() {
     return this.request('/api/health', { auth: false })
