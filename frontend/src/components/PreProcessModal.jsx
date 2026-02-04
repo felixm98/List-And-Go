@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { X, Settings, DollarSign, Tag, Truck, RotateCcw, Loader2, AlertCircle } from 'lucide-react'
+import { X, Settings, DollarSign, Tag, Truck, RotateCcw, Loader2, AlertCircle, Package, FileText, Sparkles, Type, Eye } from 'lucide-react'
 import api from '../services/api'
+import PresetPreviewModal from './PresetPreviewModal'
 
 // Fallback categories when API fails or not connected
 const FALLBACK_CATEGORIES = [
@@ -40,7 +41,12 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
     materials: '',
     autoPublish: false,
     saveAsTemplate: false,
-    templateName: ''
+    templateName: '',
+    // New preset-related settings
+    selectedPresetId: null,
+    descriptionSource: 'ai', // 'ai', 'template', 'manual'
+    descriptionTemplateId: null,
+    manualDescription: ''
   })
   
   // State for fetched Etsy data
@@ -50,6 +56,11 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
   const [isLoading, setIsLoading] = useState(true)
   const [etsyConnected, setEtsyConnected] = useState(false)
   const [loadError, setLoadError] = useState(null)
+  
+  // New state for presets and description templates
+  const [presets, setPresets] = useState([])
+  const [descriptionTemplates, setDescriptionTemplates] = useState([])
+  const [previewPreset, setPreviewPreset] = useState(null)
   
   // Fetch Etsy data when modal opens
   useEffect(() => {
@@ -61,8 +72,15 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
       
       try {
         // Check Etsy connection status first
-        const status = await api.getEtsyStatus()
+        const [status, presetsData, templatesData] = await Promise.all([
+          api.getEtsyStatus(),
+          api.getPresets().catch(() => []),
+          api.getDescriptionTemplates().catch(() => [])
+        ])
+        
         setEtsyConnected(status.connected)
+        setPresets(presetsData)
+        setDescriptionTemplates(templatesData)
         
         if (status.connected) {
           // Fetch real data from Etsy in parallel
@@ -190,6 +208,144 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
               <span className="text-sm text-blue-700">
                 Etsy ej ansluten. Anslut på inställningssidan för att hämta dina profiler.
               </span>
+            </div>
+          )}
+
+          {/* Preset Selector - NEW */}
+          {!isLoading && presets.length > 0 && (
+            <div className="bg-gradient-to-r from-etsy-orange/5 to-orange-50 rounded-xl p-4 border border-etsy-orange/20">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <Package className="w-4 h-4 text-etsy-orange" />
+                Välj en sparad preset
+                <span className="text-xs text-gray-400 ml-auto">(Valfritt)</span>
+              </label>
+              <div className="flex gap-2">
+                <select
+                  value={settings.selectedPresetId || ''}
+                  onChange={(e) => {
+                    const presetId = e.target.value ? parseInt(e.target.value) : null
+                    const selectedPreset = presets.find(p => p.id === presetId)
+                    
+                    if (selectedPreset) {
+                      // Apply preset values to settings
+                      setSettings(s => ({
+                        ...s,
+                        selectedPresetId: presetId,
+                        defaultPrice: selectedPreset.price || s.defaultPrice,
+                        quantity: selectedPreset.quantity || s.quantity,
+                        materials: selectedPreset.materials?.join(', ') || s.materials,
+                        shippingProfileId: selectedPreset.shipping_profile_id || s.shippingProfileId,
+                        returnPolicyId: selectedPreset.return_policy_id || s.returnPolicyId,
+                        categoryId: selectedPreset.taxonomy_id || s.categoryId,
+                        descriptionSource: selectedPreset.description_source || 'ai',
+                        descriptionTemplateId: selectedPreset.description_template_id || null,
+                        manualDescription: selectedPreset.manual_description || ''
+                      }))
+                    } else {
+                      setSettings(s => ({ ...s, selectedPresetId: null }))
+                    }
+                  }}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent"
+                >
+                  <option value="">-- Ingen preset (manuella inställningar) --</option>
+                  {presets.map(preset => (
+                    <option key={preset.id} value={preset.id}>
+                      {preset.name} - ${preset.price?.toFixed(2)} ({preset.listing_type})
+                    </option>
+                  ))}
+                </select>
+                {settings.selectedPresetId && (
+                  <button
+                    onClick={() => {
+                      const preset = presets.find(p => p.id === settings.selectedPresetId)
+                      if (preset) setPreviewPreset(preset)
+                    }}
+                    className="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-600"
+                    title="Förhandsgranska preset"
+                  >
+                    <Eye className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Presets skapas i Inställningar och innehåller alla Etsy-fält
+              </p>
+            </div>
+          )}
+
+          {/* Description Source Selector - NEW */}
+          {!isLoading && (
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                <FileText className="w-4 h-4" />
+                Beskrivningskälla
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSettings(s => ({ ...s, descriptionSource: 'ai' }))}
+                  className={`p-3 rounded-lg border-2 text-center transition-all ${
+                    settings.descriptionSource === 'ai'
+                      ? 'border-etsy-orange bg-etsy-orange/5 text-etsy-orange'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                  }`}
+                >
+                  <Sparkles className="w-5 h-5 mx-auto mb-1" />
+                  <span className="text-xs font-medium">AI-genererad</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSettings(s => ({ ...s, descriptionSource: 'template' }))}
+                  disabled={descriptionTemplates.length === 0}
+                  className={`p-3 rounded-lg border-2 text-center transition-all ${
+                    settings.descriptionSource === 'template'
+                      ? 'border-purple-500 bg-purple-50 text-purple-600'
+                      : descriptionTemplates.length === 0 
+                        ? 'border-gray-100 text-gray-300 cursor-not-allowed'
+                        : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                  }`}
+                >
+                  <FileText className="w-5 h-5 mx-auto mb-1" />
+                  <span className="text-xs font-medium">Mall</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSettings(s => ({ ...s, descriptionSource: 'manual' }))}
+                  className={`p-3 rounded-lg border-2 text-center transition-all ${
+                    settings.descriptionSource === 'manual'
+                      ? 'border-blue-500 bg-blue-50 text-blue-600'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                  }`}
+                >
+                  <Type className="w-5 h-5 mx-auto mb-1" />
+                  <span className="text-xs font-medium">Egen text</span>
+                </button>
+              </div>
+              
+              {/* Template selector when template is chosen */}
+              {settings.descriptionSource === 'template' && descriptionTemplates.length > 0 && (
+                <select
+                  value={settings.descriptionTemplateId || ''}
+                  onChange={(e) => setSettings(s => ({ ...s, descriptionTemplateId: e.target.value ? parseInt(e.target.value) : null }))}
+                  className="w-full mt-3 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="">-- Välj mall --</option>
+                  {descriptionTemplates.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              )}
+              
+              {/* Manual description input */}
+              {settings.descriptionSource === 'manual' && (
+                <textarea
+                  value={settings.manualDescription}
+                  onChange={(e) => setSettings(s => ({ ...s, manualDescription: e.target.value }))}
+                  placeholder="Skriv din beskrivning här... Använd {{title}} för produktnamn"
+                  rows={4}
+                  className="w-full mt-3 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                />
+              )}
             </div>
           )}
           
@@ -391,6 +547,14 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
           </button>
         </div>
       </div>
+
+      {/* Preset Preview Modal */}
+      {previewPreset && (
+        <PresetPreviewModal
+          preset={previewPreset}
+          onClose={() => setPreviewPreset(null)}
+        />
+      )}
     </div>
   )
 }

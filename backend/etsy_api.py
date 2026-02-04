@@ -224,6 +224,21 @@ def get_return_policies(access_token: str, shop_id: str) -> list:
     return response.json().get('results', [])
 
 
+def get_shop_sections(access_token: str, shop_id: str) -> list:
+    """Get shop's sections for organizing listings"""
+    headers = get_auth_headers(access_token)
+    
+    response = requests.get(
+        f'{ETSY_API_BASE}/application/shops/{shop_id}/sections',
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        return []  # Sections might not exist
+    
+    return response.json().get('results', [])
+
+
 def create_draft_listing(access_token: str, shop_id: str, listing_data: dict) -> dict:
     """
     Create a draft listing on Etsy.

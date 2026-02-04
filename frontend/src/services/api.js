@@ -245,6 +245,75 @@ class ApiService {
     return this.request('/api/etsy/categories', { auth: false })
   }
 
+  async getShopSections() {
+    return this.request('/api/etsy/shop-sections')
+  }
+
+  // ============== Listing Presets ==============
+  async getPresets() {
+    return this.request('/api/presets')
+  }
+
+  async getPreset(presetId) {
+    return this.request(`/api/presets/${presetId}`)
+  }
+
+  async createPreset(preset) {
+    return this.request('/api/presets', {
+      method: 'POST',
+      body: JSON.stringify(preset)
+    })
+  }
+
+  async updatePreset(presetId, preset) {
+    return this.request(`/api/presets/${presetId}`, {
+      method: 'PUT',
+      body: JSON.stringify(preset)
+    })
+  }
+
+  async deletePreset(presetId) {
+    return this.request(`/api/presets/${presetId}`, {
+      method: 'DELETE'
+    })
+  }
+
+  // ============== Description Templates ==============
+  async getDescriptionTemplates() {
+    return this.request('/api/description-templates')
+  }
+
+  async getDescriptionTemplate(templateId) {
+    return this.request(`/api/description-templates/${templateId}`)
+  }
+
+  async createDescriptionTemplate(template) {
+    return this.request('/api/description-templates', {
+      method: 'POST',
+      body: JSON.stringify(template)
+    })
+  }
+
+  async updateDescriptionTemplate(templateId, template) {
+    return this.request(`/api/description-templates/${templateId}`, {
+      method: 'PUT',
+      body: JSON.stringify(template)
+    })
+  }
+
+  async deleteDescriptionTemplate(templateId) {
+    return this.request(`/api/description-templates/${templateId}`, {
+      method: 'DELETE'
+    })
+  }
+
+  async previewDescriptionTemplate(templateId, variables) {
+    return this.request(`/api/description-templates/${templateId}/preview`, {
+      method: 'POST',
+      body: JSON.stringify({ variables })
+    })
+  }
+
   // ============== Uploads ==============
   async getUploads() {
     return this.request('/api/uploads')

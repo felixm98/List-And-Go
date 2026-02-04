@@ -12,14 +12,14 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
 
 from config import config
-from models import db, User, Template, Upload, Listing, EtsyToken
+from models import db, User, Template, Upload, Listing, EtsyToken, ListingPreset, DescriptionTemplate
 from auth import auth_bp
 from settings import settings_bp
 from ai_generator import generate_listing_content, regenerate_field, encode_image_bytes_to_base64
 from seo_scorer import calculate_seo_score
 from etsy_api import (
     get_authorization_url, exchange_code_for_tokens, refresh_access_token,
-    get_shop_info, get_shipping_profiles, get_return_policies,
+    get_shop_info, get_shipping_profiles, get_return_policies, get_shop_sections,
     create_draft_listing, upload_listing_image, upload_listing_video, publish_listing,
     encrypt_token, decrypt_token, get_taxonomy_nodes
 )
@@ -112,6 +112,254 @@ def delete_template(template_id):
     db.session.commit()
     
     return jsonify({'message': 'Template deleted'}), 200
+
+
+# ============== Listing Presets Routes ==============
+
+@app.route('/api/presets', methods=['GET'])
+@jwt_required()
+def get_presets():
+    """Get user's listing presets"""
+    user_id = get_jwt_identity()
+    presets = ListingPreset.query.filter_by(user_id=user_id).order_by(ListingPreset.name).all()
+    return jsonify([p.to_dict() for p in presets])
+
+
+@app.route('/api/presets', methods=['POST'])
+@jwt_required()
+def create_preset():
+    """Create a new listing preset"""
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    
+    preset = ListingPreset(
+        user_id=user_id,
+        name=data.get('name', 'Untitled Preset'),
+        preset_type=data.get('preset_type', 'digital'),
+        
+        # Required fields
+        price=data.get('price', 4.99),
+        quantity=data.get('quantity', 999),
+        who_made=data.get('who_made', 'i_did'),
+        when_made=data.get('when_made', 'made_to_order'),
+        is_supply=data.get('is_supply', False),
+        taxonomy_id=data.get('taxonomy_id'),
+        taxonomy_path=data.get('taxonomy_path'),
+        listing_type=data.get('listing_type', 'download'),
+        
+        # Shipping & Returns
+        shipping_profile_id=data.get('shipping_profile_id'),
+        return_policy_id=data.get('return_policy_id'),
+        
+        # Optional
+        shop_section_id=data.get('shop_section_id'),
+        should_auto_renew=data.get('should_auto_renew', True),
+        
+        # Personalization
+        is_personalizable=data.get('is_personalizable', False),
+        personalization_is_required=data.get('personalization_is_required', False),
+        personalization_char_count_max=data.get('personalization_char_count_max', 256),
+        personalization_instructions=data.get('personalization_instructions'),
+        
+        # Physical dimensions
+        item_weight=data.get('item_weight'),
+        item_weight_unit=data.get('item_weight_unit'),
+        item_length=data.get('item_length'),
+        item_width=data.get('item_width'),
+        item_height=data.get('item_height'),
+        item_dimensions_unit=data.get('item_dimensions_unit'),
+        
+        # Processing
+        processing_min=data.get('processing_min'),
+        processing_max=data.get('processing_max'),
+        
+        # Arrays
+        materials=data.get('materials'),
+        styles=data.get('styles'),
+        default_tags=data.get('default_tags'),
+        
+        # Description
+        description_source=data.get('description_source', 'ai'),
+        description_template_id=data.get('description_template_id'),
+        manual_description=data.get('manual_description')
+    )
+    
+    db.session.add(preset)
+    db.session.commit()
+    
+    return jsonify(preset.to_dict()), 201
+
+
+@app.route('/api/presets/<int:preset_id>', methods=['GET'])
+@jwt_required()
+def get_preset(preset_id):
+    """Get a single preset"""
+    user_id = get_jwt_identity()
+    preset = ListingPreset.query.filter_by(id=preset_id, user_id=user_id).first()
+    
+    if not preset:
+        return jsonify({'error': 'Preset not found'}), 404
+    
+    return jsonify(preset.to_dict())
+
+
+@app.route('/api/presets/<int:preset_id>', methods=['PUT'])
+@jwt_required()
+def update_preset(preset_id):
+    """Update a listing preset"""
+    user_id = get_jwt_identity()
+    preset = ListingPreset.query.filter_by(id=preset_id, user_id=user_id).first()
+    
+    if not preset:
+        return jsonify({'error': 'Preset not found'}), 404
+    
+    data = request.get_json()
+    
+    # Update all fields
+    for field in ['name', 'preset_type', 'price', 'quantity', 'who_made', 'when_made',
+                  'is_supply', 'taxonomy_id', 'taxonomy_path', 'listing_type',
+                  'shipping_profile_id', 'return_policy_id', 'shop_section_id',
+                  'should_auto_renew', 'is_personalizable', 'personalization_is_required',
+                  'personalization_char_count_max', 'personalization_instructions',
+                  'item_weight', 'item_weight_unit', 'item_length', 'item_width',
+                  'item_height', 'item_dimensions_unit', 'processing_min', 'processing_max',
+                  'materials', 'styles', 'default_tags', 'description_source',
+                  'description_template_id', 'manual_description']:
+        if field in data:
+            setattr(preset, field, data[field])
+    
+    db.session.commit()
+    
+    return jsonify(preset.to_dict())
+
+
+@app.route('/api/presets/<int:preset_id>', methods=['DELETE'])
+@jwt_required()
+def delete_preset(preset_id):
+    """Delete a listing preset"""
+    user_id = get_jwt_identity()
+    preset = ListingPreset.query.filter_by(id=preset_id, user_id=user_id).first()
+    
+    if not preset:
+        return jsonify({'error': 'Preset not found'}), 404
+    
+    db.session.delete(preset)
+    db.session.commit()
+    
+    return jsonify({'message': 'Preset deleted'})
+
+
+# ============== Description Templates Routes ==============
+
+@app.route('/api/description-templates', methods=['GET'])
+@jwt_required()
+def get_description_templates():
+    """Get user's description templates"""
+    user_id = get_jwt_identity()
+    templates = DescriptionTemplate.query.filter_by(user_id=user_id).order_by(DescriptionTemplate.name).all()
+    return jsonify([t.to_dict() for t in templates])
+
+
+@app.route('/api/description-templates', methods=['POST'])
+@jwt_required()
+def create_description_template():
+    """Create a new description template"""
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    
+    if not data.get('name') or not data.get('content'):
+        return jsonify({'error': 'Name and content are required'}), 400
+    
+    template = DescriptionTemplate(
+        user_id=user_id,
+        name=data['name'],
+        content=data['content']
+    )
+    
+    db.session.add(template)
+    db.session.commit()
+    
+    return jsonify(template.to_dict()), 201
+
+
+@app.route('/api/description-templates/<int:template_id>', methods=['GET'])
+@jwt_required()
+def get_description_template(template_id):
+    """Get a single description template"""
+    user_id = get_jwt_identity()
+    template = DescriptionTemplate.query.filter_by(id=template_id, user_id=user_id).first()
+    
+    if not template:
+        return jsonify({'error': 'Template not found'}), 404
+    
+    return jsonify(template.to_dict())
+
+
+@app.route('/api/description-templates/<int:template_id>', methods=['PUT'])
+@jwt_required()
+def update_description_template(template_id):
+    """Update a description template"""
+    user_id = get_jwt_identity()
+    template = DescriptionTemplate.query.filter_by(id=template_id, user_id=user_id).first()
+    
+    if not template:
+        return jsonify({'error': 'Template not found'}), 404
+    
+    data = request.get_json()
+    
+    if 'name' in data:
+        template.name = data['name']
+    if 'content' in data:
+        template.content = data['content']
+    
+    db.session.commit()
+    
+    return jsonify(template.to_dict())
+
+
+@app.route('/api/description-templates/<int:template_id>', methods=['DELETE'])
+@jwt_required()
+def delete_description_template(template_id):
+    """Delete a description template"""
+    user_id = get_jwt_identity()
+    template = DescriptionTemplate.query.filter_by(id=template_id, user_id=user_id).first()
+    
+    if not template:
+        return jsonify({'error': 'Template not found'}), 404
+    
+    # Check if any presets use this template
+    presets_using = ListingPreset.query.filter_by(
+        user_id=user_id, 
+        description_template_id=template_id
+    ).count()
+    
+    if presets_using > 0:
+        return jsonify({
+            'error': f'Cannot delete: {presets_using} preset(s) are using this template'
+        }), 400
+    
+    db.session.delete(template)
+    db.session.commit()
+    
+    return jsonify({'message': 'Template deleted'})
+
+
+@app.route('/api/description-templates/<int:template_id>/preview', methods=['POST'])
+@jwt_required()
+def preview_description_template(template_id):
+    """Preview a description template with variables"""
+    user_id = get_jwt_identity()
+    template = DescriptionTemplate.query.filter_by(id=template_id, user_id=user_id).first()
+    
+    if not template:
+        return jsonify({'error': 'Template not found'}), 404
+    
+    data = request.get_json()
+    variables = data.get('variables', {})
+    
+    rendered = template.render(variables)
+    
+    return jsonify({'rendered': rendered})
 
 
 # ============== AI Generation Routes ==============
@@ -351,6 +599,24 @@ def get_categories():
     try:
         categories = get_taxonomy_nodes()
         return jsonify(categories)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/etsy/shop-sections', methods=['GET'])
+@jwt_required()
+def get_etsy_shop_sections():
+    """Get user's Etsy shop sections"""
+    user_id = get_jwt_identity()
+    etsy_token = EtsyToken.query.filter_by(user_id=user_id).first()
+    
+    if not etsy_token:
+        return jsonify({'error': 'Etsy not connected'}), 400
+    
+    try:
+        access_token = decrypt_token(etsy_token.access_token_encrypted)
+        sections = get_shop_sections(access_token, etsy_token.shop_id)
+        return jsonify(sections)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

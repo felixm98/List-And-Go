@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Settings, Link2, Link2Off, Store, Save, CheckCircle, AlertCircle, Loader2, ExternalLink } from 'lucide-react'
+import { Settings, Link2, Link2Off, Store, Save, CheckCircle, AlertCircle, Loader2, ExternalLink, Package, Plus, Pencil, Trash2, FileText, Eye } from 'lucide-react'
 import { api } from '../services/api'
+import PresetEditor from '../components/PresetEditor'
+import DescriptionTemplateEditor from '../components/DescriptionTemplateEditor'
+import PresetPreviewModal from '../components/PresetPreviewModal'
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
@@ -15,6 +18,15 @@ export default function SettingsPage() {
   const [etsyStatus, setEtsyStatus] = useState({ connected: false, shop: null })
   const [connecting, setConnecting] = useState(false)
   const [disconnecting, setDisconnecting] = useState(false)
+  
+  // Preset & Template state
+  const [presets, setPresets] = useState([])
+  const [descriptionTemplates, setDescriptionTemplates] = useState([])
+  const [editingPreset, setEditingPreset] = useState(null)
+  const [showPresetEditor, setShowPresetEditor] = useState(false)
+  const [editingTemplate, setEditingTemplate] = useState(null)
+  const [showTemplateEditor, setShowTemplateEditor] = useState(false)
+  const [previewPreset, setPreviewPreset] = useState(null)
 
   useEffect(() => {
     loadData()
@@ -22,9 +34,11 @@ export default function SettingsPage() {
 
   const loadData = async () => {
     try {
-      const [settingsData, etsyData] = await Promise.all([
+      const [settingsData, etsyData, presetsData, templatesData] = await Promise.all([
         api.getSettings(),
-        api.getEtsyStatus()
+        api.getEtsyStatus(),
+        api.getPresets(),
+        api.getDescriptionTemplates()
       ])
       
       setSettings({
@@ -34,6 +48,8 @@ export default function SettingsPage() {
       })
       
       setEtsyStatus(etsyData)
+      setPresets(presetsData)
+      setDescriptionTemplates(templatesData)
     } catch (error) {
       console.error('Failed to load data:', error)
     } finally {
@@ -80,6 +96,84 @@ export default function SettingsPage() {
       setMessage({ type: 'error', text: 'Kunde inte koppla från: ' + error.message })
     } finally {
       setDisconnecting(false)
+    }
+  }
+
+  // Preset handlers
+  const handleCreatePreset = () => {
+    setEditingPreset(null)
+    setShowPresetEditor(true)
+  }
+
+  const handleEditPreset = (preset) => {
+    setEditingPreset(preset)
+    setShowPresetEditor(true)
+  }
+
+  const handleSavePreset = async (presetData) => {
+    try {
+      if (editingPreset) {
+        await api.updatePreset(editingPreset.id, presetData)
+        setMessage({ type: 'success', text: 'Preset uppdaterad!' })
+      } else {
+        await api.createPreset(presetData)
+        setMessage({ type: 'success', text: 'Preset skapad!' })
+      }
+      setShowPresetEditor(false)
+      const updatedPresets = await api.getPresets()
+      setPresets(updatedPresets)
+    } catch (error) {
+      setMessage({ type: 'error', text: error.message || 'Kunde inte spara preset' })
+    }
+  }
+
+  const handleDeletePreset = async (presetId) => {
+    if (!confirm('Är du säker på att du vill ta bort denna preset?')) return
+    try {
+      await api.deletePreset(presetId)
+      setPresets(presets.filter(p => p.id !== presetId))
+      setMessage({ type: 'success', text: 'Preset borttagen' })
+    } catch (error) {
+      setMessage({ type: 'error', text: error.message || 'Kunde inte ta bort preset' })
+    }
+  }
+
+  // Template handlers
+  const handleCreateTemplate = () => {
+    setEditingTemplate(null)
+    setShowTemplateEditor(true)
+  }
+
+  const handleEditTemplate = (template) => {
+    setEditingTemplate(template)
+    setShowTemplateEditor(true)
+  }
+
+  const handleSaveTemplate = async (templateData) => {
+    try {
+      if (editingTemplate) {
+        await api.updateDescriptionTemplate(editingTemplate.id, templateData)
+        setMessage({ type: 'success', text: 'Mall uppdaterad!' })
+      } else {
+        await api.createDescriptionTemplate(templateData)
+        setMessage({ type: 'success', text: 'Mall skapad!' })
+      }
+      setShowTemplateEditor(false)
+      const updatedTemplates = await api.getDescriptionTemplates()
+      setDescriptionTemplates(updatedTemplates)
+    } catch (error) {
+      setMessage({ type: 'error', text: error.message || 'Kunde inte spara mall' })
+    }
+  }
+
+  const handleDeleteTemplate = async (templateId) => {
+    if (!confirm('Är du säker på att du vill ta bort denna mall?')) return
+    try {
+      await api.deleteDescriptionTemplate(templateId)
+      setDescriptionTemplates(descriptionTemplates.filter(t => t.id !== templateId))
+      setMessage({ type: 'success', text: 'Mall borttagen' })
+    } catch (error) {
+      setMessage({ type: 'error', text: error.message || 'Kunde inte ta bort mall' })
     }
   }
 
@@ -289,6 +383,148 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* Listing Presets Section */}
+      <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-etsy-orange/10 rounded-lg flex items-center justify-center">
+              <Package className="w-5 h-5 text-etsy-orange" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Listing-presets</h2>
+              <p className="text-sm text-gray-500">Spara standardvärden för olika produkttyper</p>
+            </div>
+          </div>
+          <button
+            onClick={handleCreatePreset}
+            className="flex items-center gap-2 px-4 py-2 bg-etsy-orange text-white rounded-lg hover:bg-etsy-orange/90 transition-colors text-sm font-medium"
+          >
+            <Plus className="w-4 h-4" />
+            Ny preset
+          </button>
+        </div>
+
+        {presets.length === 0 ? (
+          <div className="text-center py-8 bg-gray-50 rounded-lg">
+            <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500">Inga presets ännu</p>
+            <p className="text-sm text-gray-400 mt-1">
+              Skapa en preset för att snabbt applicera inställningar vid uppladdning
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            {presets.map(preset => (
+              <div 
+                key={preset.id}
+                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${
+                    preset.listing_type === 'download' ? 'bg-blue-500' :
+                    preset.listing_type === 'physical' ? 'bg-green-500' :
+                    'bg-purple-500'
+                  }`} />
+                  <div>
+                    <h3 className="font-medium text-gray-900">{preset.name}</h3>
+                    <p className="text-sm text-gray-500">
+                      ${preset.price?.toFixed(2)} • {preset.listing_type} • {preset.who_made}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPreviewPreset(preset)}
+                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Förhandsgranska"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleEditPreset(preset)}
+                    className="p-2 text-gray-400 hover:text-etsy-orange hover:bg-etsy-orange/10 rounded-lg transition-colors"
+                    title="Redigera"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeletePreset(preset.id)}
+                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Ta bort"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Description Templates Section */}
+      <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <FileText className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Description-mallar</h2>
+              <p className="text-sm text-gray-500">Skapa återanvändbara beskrivningsmallar med variabler</p>
+            </div>
+          </div>
+          <button
+            onClick={handleCreateTemplate}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+          >
+            <Plus className="w-4 h-4" />
+            Ny mall
+          </button>
+        </div>
+
+        {descriptionTemplates.length === 0 ? (
+          <div className="text-center py-8 bg-gray-50 rounded-lg">
+            <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500">Inga mallar ännu</p>
+            <p className="text-sm text-gray-400 mt-1">
+              Skapa en mall för att använda istället för AI-genererade beskrivningar
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            {descriptionTemplates.map(template => (
+              <div 
+                key={template.id}
+                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <div>
+                  <h3 className="font-medium text-gray-900">{template.name}</h3>
+                  <p className="text-sm text-gray-500 truncate max-w-md">
+                    {template.content?.substring(0, 80)}...
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleEditTemplate(template)}
+                    className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                    title="Redigera"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteTemplate(template.id)}
+                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Ta bort"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Save Button */}
       <div className="flex justify-end">
         <button
@@ -304,6 +540,32 @@ export default function SettingsPage() {
           {saving ? 'Sparar...' : 'Spara inställningar'}
         </button>
       </div>
+
+      {/* Modals */}
+      {showPresetEditor && (
+        <PresetEditor
+          preset={editingPreset}
+          descriptionTemplates={descriptionTemplates}
+          onSave={handleSavePreset}
+          onClose={() => setShowPresetEditor(false)}
+        />
+      )}
+
+      {showTemplateEditor && (
+        <DescriptionTemplateEditor
+          template={editingTemplate}
+          onSave={handleSaveTemplate}
+          onClose={() => setShowTemplateEditor(false)}
+        />
+      )}
+
+      {previewPreset && (
+        <PresetPreviewModal
+          preset={previewPreset}
+          onClose={() => setPreviewPreset(null)}
+          onEdit={handleEditPreset}
+        />
+      )}
     </div>
   )
 }
