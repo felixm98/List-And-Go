@@ -285,6 +285,62 @@ def create_draft_listing(access_token: str, shop_id: str, listing_data: dict) ->
     if listing_data.get('return_policy_id'):
         body['return_policy_id'] = listing_data['return_policy_id']
     
+    if listing_data.get('shop_section_id'):
+        body['shop_section_id'] = listing_data['shop_section_id']
+    
+    if listing_data.get('materials'):
+        body['materials'] = listing_data['materials']
+    
+    if listing_data.get('styles'):
+        body['styles'] = listing_data['styles'][:2]  # Max 2 styles
+    
+    # Boolean fields
+    if 'is_supply' in listing_data:
+        body['is_supply'] = listing_data['is_supply']
+    
+    if 'should_auto_renew' in listing_data:
+        body['should_auto_renew'] = listing_data['should_auto_renew']
+    
+    if 'is_taxable' in listing_data:
+        body['is_taxable'] = listing_data['is_taxable']
+    
+    if 'is_customizable' in listing_data:
+        body['is_customizable'] = listing_data['is_customizable']
+    
+    # Personalization
+    if listing_data.get('is_personalizable'):
+        body['is_personalizable'] = True
+        if listing_data.get('personalization_is_required'):
+            body['personalization_is_required'] = True
+        if listing_data.get('personalization_char_count_max'):
+            body['personalization_char_count_max'] = listing_data['personalization_char_count_max']
+        if listing_data.get('personalization_instructions'):
+            body['personalization_instructions'] = listing_data['personalization_instructions']
+    
+    # Production partners (for print-on-demand)
+    if listing_data.get('production_partner_ids'):
+        body['production_partner_ids'] = listing_data['production_partner_ids']
+    
+    # Physical item dimensions
+    if listing_data.get('item_weight'):
+        body['item_weight'] = listing_data['item_weight']
+        body['item_weight_unit'] = listing_data.get('item_weight_unit', 'oz')
+    
+    if listing_data.get('item_length'):
+        body['item_length'] = listing_data['item_length']
+    if listing_data.get('item_width'):
+        body['item_width'] = listing_data['item_width']
+    if listing_data.get('item_height'):
+        body['item_height'] = listing_data['item_height']
+    if listing_data.get('item_dimensions_unit'):
+        body['item_dimensions_unit'] = listing_data['item_dimensions_unit']
+    
+    # Processing time
+    if listing_data.get('processing_min'):
+        body['processing_min'] = listing_data['processing_min']
+    if listing_data.get('processing_max'):
+        body['processing_max'] = listing_data['processing_max']
+    
     response = requests.post(
         f'{ETSY_API_BASE}/application/shops/{shop_id}/listings',
         headers=headers,

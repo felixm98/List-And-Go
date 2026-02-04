@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { 
   X, Save, Loader2, Package, DollarSign, Tag, Truck, 
   RotateCcw, Sparkles, FileText, ChevronDown, ChevronUp,
-  AlertCircle
+  AlertCircle, FolderTree, Search
 } from 'lucide-react'
 import { api } from '../services/api'
 
@@ -87,7 +87,11 @@ export default function PresetEditor({ preset, onSave, onClose }) {
     default_tags: [],
     description_source: 'ai',
     description_template_id: null,
-    manual_description: ''
+    manual_description: '',
+    // New fields
+    is_taxable: true,
+    is_customizable: true,
+    production_partner_ids: []
   })
   
   const [saving, setSaving] = useState(false)
@@ -99,7 +103,13 @@ export default function PresetEditor({ preset, onSave, onClose }) {
   const [returnPolicies, setReturnPolicies] = useState([])
   const [shopSections, setShopSections] = useState([])
   const [descriptionTemplates, setDescriptionTemplates] = useState([])
+  const [categories, setCategories] = useState([])
+  const [productionPartners, setProductionPartners] = useState([])
   const [loadingEtsyData, setLoadingEtsyData] = useState(true)
+  
+  // Category search
+  const [categorySearch, setCategorySearch] = useState('')
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
   
   // Tags/materials input
   const [tagInput, setTagInput] = useState('')
@@ -121,16 +131,18 @@ export default function PresetEditor({ preset, onSave, onClose }) {
   const loadEtsyData = async () => {
     setLoadingEtsyData(true)
     try {
-      const [profiles, policies, sections, templates] = await Promise.all([
+      const [profiles, policies, sections, templates, cats] = await Promise.all([
         api.getShippingProfiles().catch(() => []),
         api.getReturnPolicies().catch(() => []),
         api.getShopSections().catch(() => []),
-        api.getDescriptionTemplates().catch(() => [])
+        api.getDescriptionTemplates().catch(() => []),
+        api.getCategories().catch(() => [])
       ])
       setShippingProfiles(profiles)
       setReturnPolicies(policies)
       setShopSections(sections)
       setDescriptionTemplates(templates)
+      setCategories(cats)
     } catch (err) {
       console.error('Failed to load Etsy data:', err)
     } finally {
@@ -185,7 +197,9 @@ export default function PresetEditor({ preset, onSave, onClose }) {
         shipping_profile_id: formData.shipping_profile_id || null,
         return_policy_id: formData.return_policy_id || null,
         shop_section_id: formData.shop_section_id || null,
-        description_template_id: formData.description_source === 'template' ? formData.description_template_id : null
+        description_template_id: formData.description_source === 'template' ? formData.description_template_id : null,
+        taxonomy_id: formData.taxonomy_id || null,
+        production_partner_ids: formData.production_partner_ids?.length > 0 ? formData.production_partner_ids : null
       }
 
       if (preset?.id) {
@@ -257,6 +271,112 @@ export default function PresetEditor({ preset, onSave, onClose }) {
               </div>
             </div>
 
+            {/* Category (Taxonomy) - REQUIRED */}
+            <div className="bg-green-50 rounded-lg p-4">
+              <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                <FolderTree className="w-5 h-5 text-green-600" />
+                Kategori (obligatoriskt för Etsy)
+              </h3>
+              <div className="relative">
+                <div className="flex gap-2">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      value={categorySearch}
+                      onChange={(e) => {
+                        setCategorySearch(e.target.value)
+                        setShowCategoryDropdown(true)
+                      }}
+                      onFocus={() => setShowCategoryDropdown(true)}
+                      placeholder="Sök kategori..."
+                      className="w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500/50"
+                    />
+                  </div>
+                </div>
+                
+                {/* Selected category display */}
+                {formData.taxonomy_path && (
+                  <div className="mt-2 p-2 bg-green-100 rounded-lg flex items-center justify-between">
+                    <span className="text-sm text-green-800">
+                      <strong>Vald:</strong> {formData.taxonomy_path}
+                    </span>
+                    <button
+                      onClick={() => {
+                        handleChange('taxonomy_id', null)
+                        handleChange('taxonomy_path', '')
+                      }}
+                      className="text-green-600 hover:text-red-500 text-sm"
+                    >
+                      Rensa
+                    </button>
+                  </div>
+                )}
+
+                {/* Category dropdown */}
+                {showCategoryDropdown && categorySearch && (
+                  <div className="absolute z-10 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {categories
+                      .filter(cat => 
+                        cat.name?.toLowerCase().includes(categorySearch.toLowerCase()) ||
+                        cat.full_path_taxonomy_ids?.some(id => 
+                          categories.find(c => c.id === id)?.name?.toLowerCase().includes(categorySearch.toLowerCase())
+                        )
+                      )
+                      .slice(0, 50)
+                      .map(cat => (
+                        <button
+                          key={cat.id}
+                          onClick={() => {
+                            handleChange('taxonomy_id', cat.id)
+                            handleChange('taxonomy_path', cat.name || `Category ${cat.id}`)
+                            setCategorySearch('')
+                            setShowCategoryDropdown(false)
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-green-50 text-sm border-b last:border-0"
+                        >
+                          <div className="font-medium">{cat.name}</div>
+                          {cat.path && <div className="text-xs text-gray-500">{cat.path}</div>}
+                        </button>
+                      ))
+                    }
+                    {categories.filter(cat => 
+                      cat.name?.toLowerCase().includes(categorySearch.toLowerCase())
+                    ).length === 0 && (
+                      <div className="px-3 py-2 text-sm text-gray-500">Inga kategorier hittades</div>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              {/* Common digital categories quick select */}
+              <div className="mt-3">
+                <p className="text-xs text-gray-500 mb-2">Snabbval för digitala produkter:</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: 2078, name: 'Digital Downloads', path: 'Craft Supplies & Tools > Digital' },
+                    { id: 66, name: 'Art & Collectibles', path: 'Art & Collectibles' },
+                    { id: 1, name: 'Accessories', path: 'Accessories' }
+                  ].map(cat => (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        handleChange('taxonomy_id', cat.id)
+                        handleChange('taxonomy_path', cat.path)
+                      }}
+                      className={`px-2 py-1 text-xs rounded-full border transition-colors ${
+                        formData.taxonomy_id === cat.id
+                          ? 'bg-green-500 text-white border-green-500'
+                          : 'bg-white text-gray-600 border-gray-300 hover:border-green-400'
+                      }`}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             {/* Price & Quantity */}
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
@@ -310,7 +430,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                   </select>
                 </div>
               </div>
-              <div className="mt-3 flex items-center gap-4">
+              <div className="mt-3 flex flex-wrap items-center gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -328,6 +448,24 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                     className="w-4 h-4 rounded text-etsy-orange"
                   />
                   <span className="text-sm text-gray-600">Auto-förnya</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_taxable}
+                    onChange={(e) => handleChange('is_taxable', e.target.checked)}
+                    className="w-4 h-4 rounded text-etsy-orange"
+                  />
+                  <span className="text-sm text-gray-600">Momspliktigt</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_customizable}
+                    onChange={(e) => handleChange('is_customizable', e.target.checked)}
+                    className="w-4 h-4 rounded text-etsy-orange"
+                  />
+                  <span className="text-sm text-gray-600">Kan anpassas</span>
                 </label>
               </div>
             </div>

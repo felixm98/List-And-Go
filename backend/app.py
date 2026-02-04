@@ -155,6 +155,11 @@ def create_preset():
         shop_section_id=data.get('shop_section_id'),
         should_auto_renew=data.get('should_auto_renew', True),
         
+        # Tax & Customization
+        is_taxable=data.get('is_taxable', True),
+        is_customizable=data.get('is_customizable', True),
+        production_partner_ids=data.get('production_partner_ids'),
+        
         # Personalization
         is_personalizable=data.get('is_personalizable', False),
         personalization_is_required=data.get('personalization_is_required', False),
@@ -219,7 +224,8 @@ def update_preset(preset_id):
     for field in ['name', 'preset_type', 'price', 'quantity', 'who_made', 'when_made',
                   'is_supply', 'taxonomy_id', 'taxonomy_path', 'listing_type',
                   'shipping_profile_id', 'return_policy_id', 'shop_section_id',
-                  'should_auto_renew', 'is_personalizable', 'personalization_is_required',
+                  'should_auto_renew', 'is_taxable', 'is_customizable', 'production_partner_ids',
+                  'is_personalizable', 'personalization_is_required',
                   'personalization_char_count_max', 'personalization_instructions',
                   'item_weight', 'item_weight_unit', 'item_length', 'item_width',
                   'item_height', 'item_dimensions_unit', 'processing_min', 'processing_max',

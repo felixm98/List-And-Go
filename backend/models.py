@@ -277,6 +277,13 @@ class ListingPreset(db.Model):
     # Renewal
     should_auto_renew = db.Column(db.Boolean, default=True)
     
+    # Tax & Customization
+    is_taxable = db.Column(db.Boolean, default=True)  # Apply shop tax rates at checkout
+    is_customizable = db.Column(db.Boolean, default=True)  # Buyer can contact for custom order
+    
+    # Production partners (for print-on-demand, etc.)
+    production_partner_ids = db.Column(db.JSON)  # Array of production partner IDs
+    
     # Personalization
     is_personalizable = db.Column(db.Boolean, default=False)
     personalization_is_required = db.Column(db.Boolean, default=False)
@@ -341,6 +348,11 @@ class ListingPreset(db.Model):
             'shop_section_id': self.shop_section_id,
             'should_auto_renew': self.should_auto_renew,
             
+            # Tax & Customization
+            'is_taxable': self.is_taxable,
+            'is_customizable': self.is_customizable,
+            'production_partner_ids': self.production_partner_ids or [],
+            
             # Personalization
             'is_personalizable': self.is_personalizable,
             'personalization_is_required': self.personalization_is_required,
@@ -388,6 +400,8 @@ class ListingPreset(db.Model):
             'taxonomy_id': self.taxonomy_id,
             'type': self.listing_type,
             'should_auto_renew': self.should_auto_renew,
+            'is_taxable': self.is_taxable,
+            'is_customizable': self.is_customizable,
         }
         
         # Add optional fields only if set
@@ -403,6 +417,8 @@ class ListingPreset(db.Model):
             data['styles'] = self.styles
         if self.default_tags:
             data['tags'] = self.default_tags
+        if self.production_partner_ids:
+            data['production_partner_ids'] = self.production_partner_ids
             
         # Personalization
         if self.is_personalizable:
