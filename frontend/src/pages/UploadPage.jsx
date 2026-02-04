@@ -201,6 +201,36 @@ function UploadPage({ listings, addListings, updateListing, removeListing, clear
         showPreProcessModal={showPreProcess}
       />
       
+      {/* Step-by-step guide */}
+      <div className="mt-8 p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <span className="w-6 h-6 bg-etsy-orange text-white rounded-full flex items-center justify-center text-sm">?</span>
+          Så här fungerar det
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="flex flex-col items-center text-center p-4 bg-gray-50 rounded-lg">
+            <div className="w-10 h-10 bg-etsy-light text-etsy-orange rounded-full flex items-center justify-center font-bold mb-3">1</div>
+            <h4 className="font-medium text-gray-800 mb-1">Ladda upp</h4>
+            <p className="text-sm text-gray-500">Dra och släpp mappar med dina mockup-bilder</p>
+          </div>
+          <div className="flex flex-col items-center text-center p-4 bg-gray-50 rounded-lg">
+            <div className="w-10 h-10 bg-etsy-light text-etsy-orange rounded-full flex items-center justify-center font-bold mb-3">2</div>
+            <h4 className="font-medium text-gray-800 mb-1">AI-generering</h4>
+            <p className="text-sm text-gray-500">AI skapar titlar, beskrivningar och taggar automatiskt</p>
+          </div>
+          <div className="flex flex-col items-center text-center p-4 bg-gray-50 rounded-lg">
+            <div className="w-10 h-10 bg-etsy-light text-etsy-orange rounded-full flex items-center justify-center font-bold mb-3">3</div>
+            <h4 className="font-medium text-gray-800 mb-1">Granska & redigera</h4>
+            <p className="text-sm text-gray-500">Justera innehållet och se SEO-poäng i realtid</p>
+          </div>
+          <div className="flex flex-col items-center text-center p-4 bg-gray-50 rounded-lg">
+            <div className="w-10 h-10 bg-etsy-light text-etsy-orange rounded-full flex items-center justify-center font-bold mb-3">4</div>
+            <h4 className="font-medium text-gray-800 mb-1">Publicera</h4>
+            <p className="text-sm text-gray-500">Ladda upp som utkast till din Etsy-butik</p>
+          </div>
+        </div>
+      </div>
+      
       {/* Pre-Process Modal */}
       <PreProcessModal
         isOpen={showModal}
