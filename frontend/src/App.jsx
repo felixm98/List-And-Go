@@ -31,9 +31,9 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar listingsCount={listings.length} />
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-6 flex-grow">
         <Routes>
           <Route 
             path="/" 
@@ -58,6 +58,13 @@ function App() {
           />
         </Routes>
       </main>
+      
+      {/* Footer with legal disclaimer */}
+      <footer className="mt-auto py-4 px-4 border-t bg-white">
+        <p className="text-center text-xs text-gray-500">
+          The term 'Etsy' is a trademark of Etsy, Inc. This application uses the Etsy API but is not endorsed or certified by Etsy, Inc.
+        </p>
+      </footer>
     </div>
   )
 }
