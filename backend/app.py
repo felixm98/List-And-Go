@@ -21,7 +21,8 @@ from etsy_api import (
     get_authorization_url, exchange_code_for_tokens, refresh_access_token,
     get_shop_info, get_shipping_profiles, get_return_policies, get_shop_sections,
     create_draft_listing, upload_listing_image, upload_listing_video, publish_listing,
-    encrypt_token, decrypt_token, get_taxonomy_nodes
+    encrypt_token, decrypt_token, get_taxonomy_nodes, get_taxonomy_properties,
+    update_listing_property, get_listing_properties, set_listing_attributes_from_ai
 )
 from scheduler import init_scheduler, schedule_publish, cancel_scheduled_publish, shutdown_scheduler
 
@@ -609,6 +610,24 @@ def get_categories():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/etsy/categories/<int:taxonomy_id>/properties', methods=['GET'])
+def get_category_properties(taxonomy_id):
+    """Get available listing properties for a specific category/taxonomy.
+    
+    Properties are category-specific attributes like Holiday, Color, Style, etc.
+    Returns a list of properties with their possible values.
+    """
+    try:
+        properties = get_taxonomy_properties(taxonomy_id)
+        return jsonify({
+            'taxonomy_id': taxonomy_id,
+            'properties': properties,
+            'count': len(properties)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/etsy/shop-sections', methods=['GET'])
 @jwt_required()
 def get_etsy_shop_sections():
@@ -679,6 +698,8 @@ def create_upload():
             taxonomy_id=listing_data.get('categoryId'),
             shipping_profile_id=listing_data.get('shippingProfileId'),
             return_policy_id=listing_data.get('returnPolicyId'),
+            styles=listing_data.get('styles', []),
+            listing_attributes=listing_data.get('listing_attributes', {}),
             seo_score=listing_data.get('seo_score') or listing_data.get('seoScore'),
             images=listing_data.get('images', []),
             videos=listing_data.get('videos', [])
@@ -957,6 +978,13 @@ def publish_upload(upload_id):
                     except (ValueError, TypeError):
                         pass  # Skip if not a valid integer ID
                 
+                # Add styles if available (max 2)
+                if listing.styles:
+                    listing_data['styles'] = listing.styles[:2]
+                # Also check listing_attributes for style array
+                elif listing.listing_attributes and listing.listing_attributes.get('style'):
+                    listing_data['styles'] = listing.listing_attributes['style'][:2]
+                
                 # Create draft listing on Etsy
                 etsy_listing = create_draft_listing(
                     access_token,
@@ -966,6 +994,22 @@ def publish_upload(upload_id):
                 
                 listing.etsy_listing_id = str(etsy_listing['listing_id'])
                 listing.status = 'uploaded'
+                
+                # Set listing properties (attributes) from AI-generated data
+                if listing.listing_attributes and listing.taxonomy_id:
+                    try:
+                        property_result = set_listing_attributes_from_ai(
+                            access_token,
+                            etsy_token.shop_id,
+                            listing.etsy_listing_id,
+                            listing.taxonomy_id,
+                            listing.listing_attributes
+                        )
+                        if property_result.get('errors'):
+                            print(f"Property setting warnings: {property_result['errors']}")
+                    except Exception as prop_error:
+                        # Property setting failures are not critical - continue
+                        print(f"Warning: Failed to set properties: {prop_error}")
                 
                 # Upload images would go here
                 # For each image in listing.images, upload to Etsy

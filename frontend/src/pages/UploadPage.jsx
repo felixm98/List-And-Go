@@ -23,26 +23,31 @@ function UploadPage({ listings, addListings, updateListing, removeListing, clear
     setIsProcessing(true)
     setShowModal(false)
     
-    // Simulate AI processing with settings applied
-        const processedProducts = await Promise.all(
-          pendingProducts.map(async (product) => {
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 800))
+    // Process products using real AI API
+    const processedProducts = await Promise.all(
+      pendingProducts.map(async (product) => {
+        try {
+          // Get the first image file for AI analysis
+          const imageFile = product.images?.[0]?.file
+          
+          if (imageFile) {
+            // Call real AI generation API
+            const aiResult = await api.generateContent(
+              imageFile,
+              product.folderName,
+              product.images.length,
+              settings.category || ''
+            )
             
-            // Mock AI generation
-            const styles = ['Minimalist', 'Vintage', 'Modern', 'Boho', 'Rustic', 'Elegant']
-            const style = styles[Math.floor(Math.random() * styles.length)]
+            // Extract styles from listing_attributes if available
+            const styles = aiResult.listing_attributes?.style || []
+            const styleString = styles.length > 0 ? styles[0] : ''
             
             return {
               ...product,
-              title: `${style} ${product.folderName} Mockup | High Quality Digital Download | Commercial Use`,
-              description: `✨ PROFESSIONAL MOCKUP ✨\n\nThis stunning ${style.toLowerCase()} mockup is perfect for showcasing your designs.\n\n📦 WHAT YOU GET:\n• ${product.images.length} high-resolution mockup variations\n• PNG format\n• 300 DPI print-ready quality\n• Instant digital download\n\n💼 COMMERCIAL LICENSE INCLUDED`,
-              tags: [
-                'mockup', 'digital download', style.toLowerCase(), 'commercial use',
-                'png mockup', 'product mockup', 'design template', 'instant download',
-                'print on demand', 'etsy seller', product.folderName.toLowerCase(),
-                'professional mockup', 'high quality'
-              ].slice(0, 13),
+              title: aiResult.title || `${product.folderName} | Digital Download`,
+              description: aiResult.description || '',
+              tags: aiResult.tags || [],
               category: settings.category,
               categoryId: settings.categoryId,
               price: settings.defaultPrice || '',
@@ -53,14 +58,70 @@ function UploadPage({ listings, addListings, updateListing, removeListing, clear
               returnPolicy: settings.returnPolicy,
               returnPolicyId: settings.returnPolicyId,
               quantity: settings.quantity || 999,
-              materials: settings.materials,
-              style: style,
-              seoScore: Math.floor(70 + Math.random() * 25),
+              materials: aiResult.materials || settings.materials || '',
+              style: styleString,
+              styles: styles,
+              listing_attributes: aiResult.listing_attributes || {},
+              seoScore: aiResult.seo_score || 75,
               status: 'ready',
               videos: product.videos || []
             }
-          })
-        )
+          } else {
+            // Fallback if no image available
+            return {
+              ...product,
+              title: `${product.folderName} | Digital Download`,
+              description: 'Digital download product',
+              tags: ['digital download'],
+              category: settings.category,
+              categoryId: settings.categoryId,
+              price: settings.defaultPrice || '',
+              shippingProfile: settings.shippingProfile,
+              shippingProfileId: settings.shippingProfileId,
+              shippingCost: settings.shippingCost,
+              shippingTime: settings.shippingTime,
+              returnPolicy: settings.returnPolicy,
+              returnPolicyId: settings.returnPolicyId,
+              quantity: settings.quantity || 999,
+              materials: settings.materials || '',
+              style: '',
+              styles: [],
+              listing_attributes: {},
+              seoScore: 50,
+              status: 'ready',
+              videos: product.videos || []
+            }
+          }
+        } catch (error) {
+          console.error('AI generation failed for product:', product.folderName, error)
+          // Return product with basic data on error
+          return {
+            ...product,
+            title: `${product.folderName} | Digital Download`,
+            description: 'Digital download product',
+            tags: ['digital download'],
+            category: settings.category,
+            categoryId: settings.categoryId,
+            price: settings.defaultPrice || '',
+            shippingProfile: settings.shippingProfile,
+            shippingProfileId: settings.shippingProfileId,
+            shippingCost: settings.shippingCost,
+            shippingTime: settings.shippingTime,
+            returnPolicy: settings.returnPolicy,
+            returnPolicyId: settings.returnPolicyId,
+            quantity: settings.quantity || 999,
+            materials: settings.materials || '',
+            style: '',
+            styles: [],
+            listing_attributes: {},
+            seoScore: 50,
+            status: 'error',
+            error: error.message,
+            videos: product.videos || []
+          }
+        }
+      })
+    )
     
     addListings(processedProducts)
     setPendingProducts([])

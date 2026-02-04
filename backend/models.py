@@ -110,6 +110,13 @@ class Listing(db.Model):
     shipping_profile_id = db.Column(db.String(50))  # Shipping profile ID
     return_policy_id = db.Column(db.String(50))  # Return policy ID
     
+    # Styles (max 2 free-form strings like "Formal", "Minimalist")
+    styles = db.Column(db.JSON)  # ['Modern', 'Boho']
+    
+    # AI-generated listing attributes for Etsy properties
+    # {holiday, occasion, recipient, subject, style, primary_color, secondary_color, mood}
+    listing_attributes = db.Column(db.JSON)
+    
     # SEO
     seo_score = db.Column(db.Integer)
     
@@ -139,6 +146,8 @@ class Listing(db.Model):
             'taxonomy_id': self.taxonomy_id,
             'shipping_profile_id': self.shipping_profile_id,
             'return_policy_id': self.return_policy_id,
+            'styles': self.styles or [],
+            'listing_attributes': self.listing_attributes or {},
             'seo_score': self.seo_score,
             'etsy_listing_id': self.etsy_listing_id,
             'etsy_url': self.etsy_url,

@@ -580,3 +580,265 @@ def get_taxonomy_nodes() -> list:
         raise Exception(f"Failed to get taxonomy: {response.text}")
     
     return response.json().get('results', [])
+
+
+def get_taxonomy_properties(taxonomy_id: int) -> list:
+    """
+    Get available listing properties for a specific taxonomy/category.
+    
+    Properties are category-specific attributes like Holiday, Color, Style, etc.
+    Different categories have different available properties.
+    
+    Args:
+        taxonomy_id: The numeric taxonomy ID
+    
+    Returns:
+        List of property objects with property_id, name, possible_values, scales, etc.
+    """
+    api_key = os.environ.get('ETSY_API_KEY')
+    
+    response = requests.get(
+        f'{ETSY_API_BASE}/application/seller-taxonomy/nodes/{taxonomy_id}/properties',
+        headers={'x-api-key': api_key}
+    )
+    
+    if response.status_code != 200:
+        # Some taxonomies might not have properties
+        if response.status_code == 404:
+            return []
+        raise Exception(f"Failed to get taxonomy properties: {response.text}")
+    
+    return response.json().get('results', [])
+
+
+def update_listing_property(access_token: str, shop_id: str, listing_id: str,
+                           property_id: int, value_ids: list, values: list,
+                           scale_id: int = None) -> dict:
+    """
+    Set or update a property value on a listing.
+    
+    Properties are category-specific attributes (Holiday, Color, Style, etc.)
+    that must be set AFTER the listing is created.
+    
+    Args:
+        access_token: Valid access token
+        shop_id: Shop ID
+        listing_id: Listing ID
+        property_id: The property ID from taxonomy properties
+        value_ids: Array of value IDs (required)
+        values: Array of value strings (required)
+        scale_id: Optional scale ID for properties with scales (like sizes)
+    
+    Returns:
+        The created/updated property object
+    """
+    headers = get_auth_headers(access_token)
+    
+    body = {
+        'value_ids': value_ids,
+        'values': values
+    }
+    
+    if scale_id is not None:
+        body['scale_id'] = scale_id
+    
+    response = requests.put(
+        f'{ETSY_API_BASE}/application/shops/{shop_id}/listings/{listing_id}/properties/{property_id}',
+        headers=headers,
+        data=body  # This endpoint uses form data, not JSON
+    )
+    
+    if response.status_code not in [200, 201]:
+        # Property update failures are not critical - log and continue
+        print(f"Warning: Failed to set property {property_id}: {response.text}")
+        return None
+    
+    return response.json()
+
+
+def get_listing_properties(access_token: str, shop_id: str, listing_id: str) -> list:
+    """
+    Get all properties currently set on a listing.
+    
+    Args:
+        access_token: Valid access token
+        shop_id: Shop ID
+        listing_id: Listing ID
+    
+    Returns:
+        List of property objects with property_id, property_name, values, value_ids
+    """
+    headers = get_auth_headers(access_token)
+    
+    response = requests.get(
+        f'{ETSY_API_BASE}/application/shops/{shop_id}/listings/{listing_id}/properties',
+        headers=headers
+    )
+    
+    if response.status_code != 200:
+        return []
+    
+    return response.json().get('results', [])
+
+
+def delete_listing_property(access_token: str, shop_id: str, listing_id: str,
+                           property_id: int) -> bool:
+    """
+    Delete a property from a listing.
+    
+    Args:
+        access_token: Valid access token
+        shop_id: Shop ID
+        listing_id: Listing ID
+        property_id: Property ID to delete
+    
+    Returns:
+        True if successful
+    """
+    headers = get_auth_headers(access_token)
+    
+    response = requests.delete(
+        f'{ETSY_API_BASE}/application/shops/{shop_id}/listings/{listing_id}/properties/{property_id}',
+        headers=headers
+    )
+    
+    return response.status_code == 204
+
+
+def set_listing_attributes_from_ai(access_token: str, shop_id: str, listing_id: str,
+                                   taxonomy_id: int, ai_attributes: dict) -> dict:
+    """
+    Map AI-generated listing attributes to Etsy properties and set them.
+    
+    This function:
+    1. Gets available properties for the taxonomy
+    2. Maps AI attribute names to Etsy property IDs
+    3. Finds matching value_ids for AI values
+    4. Sets each applicable property
+    
+    Args:
+        access_token: Valid access token
+        shop_id: Shop ID
+        listing_id: Listing ID
+        taxonomy_id: The listing's taxonomy ID
+        ai_attributes: Dict with holiday, occasion, recipient, subject, style, 
+                      primary_color, secondary_color, mood
+    
+    Returns:
+        Dict with success count and any errors
+    """
+    if not ai_attributes:
+        return {'success': 0, 'errors': [], 'skipped': 0}
+    
+    # Get available properties for this taxonomy
+    try:
+        properties = get_taxonomy_properties(taxonomy_id)
+    except Exception as e:
+        return {'success': 0, 'errors': [str(e)], 'skipped': 0}
+    
+    if not properties:
+        return {'success': 0, 'errors': [], 'skipped': 0, 'message': 'No properties available for this taxonomy'}
+    
+    # Build a map of property names to property data
+    property_map = {}
+    for prop in properties:
+        # Normalize name for matching (lowercase, remove spaces)
+        name_key = prop.get('name', '').lower().replace(' ', '_').replace('-', '_')
+        property_map[name_key] = prop
+    
+    # Common name mappings from AI output to Etsy property names
+    ai_to_etsy_name = {
+        'holiday': ['holiday', 'occasion'],
+        'occasion': ['occasion', 'holiday'],
+        'recipient': ['recipient', 'who_for', 'for_whom'],
+        'subject': ['subject', 'theme'],
+        'primary_color': ['primary_color', 'color', 'main_color'],
+        'secondary_color': ['secondary_color'],
+        'mood': ['mood', 'feeling', 'style'],
+        'style': ['style', 'aesthetic']
+    }
+    
+    results = {'success': 0, 'errors': [], 'skipped': 0, 'set_properties': []}
+    
+    for ai_attr, value in ai_attributes.items():
+        if value is None:
+            results['skipped'] += 1
+            continue
+        
+        # For style array, we need special handling
+        if ai_attr == 'style' and isinstance(value, list):
+            # Styles are handled via the listing itself, not properties
+            # They're set in create_draft_listing with max 2 styles
+            continue
+        
+        # Find matching Etsy property
+        possible_names = ai_to_etsy_name.get(ai_attr, [ai_attr])
+        matched_property = None
+        
+        for pname in possible_names:
+            if pname in property_map:
+                matched_property = property_map[pname]
+                break
+        
+        if not matched_property:
+            results['skipped'] += 1
+            continue
+        
+        property_id = matched_property.get('property_id')
+        possible_values = matched_property.get('possible_values', [])
+        
+        # Try to find a matching value_id
+        value_str = str(value).lower().strip()
+        matched_value = None
+        
+        for pv in possible_values:
+            if pv.get('name', '').lower() == value_str or pv.get('value_id') == value:
+                matched_value = pv
+                break
+            # Also check for partial match
+            if value_str in pv.get('name', '').lower():
+                matched_value = pv
+                break
+        
+        if matched_value:
+            # Set the property with matched value
+            try:
+                result = update_listing_property(
+                    access_token, shop_id, listing_id,
+                    property_id,
+                    [matched_value['value_id']],
+                    [matched_value['name']]
+                )
+                if result:
+                    results['success'] += 1
+                    results['set_properties'].append({
+                        'property': matched_property.get('name'),
+                        'value': matched_value['name']
+                    })
+                else:
+                    results['errors'].append(f"Failed to set {ai_attr}")
+            except Exception as e:
+                results['errors'].append(f"{ai_attr}: {str(e)}")
+        else:
+            # Value not in predefined list - some properties accept free-form values
+            if matched_property.get('supports_attributes', False):
+                try:
+                    # Try setting with value as string (value_id of 0 or generated)
+                    result = update_listing_property(
+                        access_token, shop_id, listing_id,
+                        property_id,
+                        [0],  # 0 indicates custom value
+                        [str(value)]
+                    )
+                    if result:
+                        results['success'] += 1
+                        results['set_properties'].append({
+                            'property': matched_property.get('name'),
+                            'value': str(value)
+                        })
+                except Exception as e:
+                    results['skipped'] += 1
+            else:
+                results['skipped'] += 1
+    
+    return results

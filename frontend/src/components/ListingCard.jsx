@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Edit2, Trash2, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
+import { X, Edit2, Trash2, ChevronDown, ChevronUp, Sparkles, Tag, Palette, Gift, Calendar, Heart } from 'lucide-react'
 import SEOBadge from './SEOBadge'
 
 function ListingCard({ listing, onUpdate, onRemove }) {
@@ -9,7 +9,9 @@ function ListingCard({ listing, onUpdate, onRemove }) {
     title: listing.title,
     description: listing.description,
     tags: listing.tags,
-    price: listing.price || ''
+    price: listing.price || '',
+    styles: listing.styles || [],
+    listing_attributes: listing.listing_attributes || {}
   })
   const [newTag, setNewTag] = useState('')
   
@@ -23,9 +25,21 @@ function ListingCard({ listing, onUpdate, onRemove }) {
       title: listing.title,
       description: listing.description,
       tags: listing.tags,
-      price: listing.price || ''
+      price: listing.price || '',
+      styles: listing.styles || [],
+      listing_attributes: listing.listing_attributes || {}
     })
     setIsEditing(false)
+  }
+  
+  const updateAttribute = (key, value) => {
+    setEditData(d => ({
+      ...d,
+      listing_attributes: {
+        ...d.listing_attributes,
+        [key]: value || null
+      }
+    }))
   }
   
   const addTag = () => {
@@ -162,6 +176,91 @@ function ListingCard({ listing, onUpdate, onRemove }) {
               />
             </div>
             
+            {/* Listing Attributes Section */}
+            <div className="border-t pt-4">
+              <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide flex items-center gap-1">
+                <Tag className="w-3 h-3" />
+                Etsy-attribut (Holiday, Occasion, etc.)
+              </h4>
+              <p className="text-xs text-gray-400 mb-3">
+                Dessa synkas till Etsy som listningsegenskaper
+              </p>
+              
+              <div className="grid grid-cols-2 gap-3">
+                {/* Holiday */}
+                <div>
+                  <label className="text-xs text-gray-500">Holiday</label>
+                  <input
+                    type="text"
+                    value={editData.listing_attributes?.holiday || ''}
+                    onChange={(e) => updateAttribute('holiday', e.target.value)}
+                    placeholder="t.ex. Christmas, Valentine's Day"
+                    className="w-full mt-1 px-2 py-1.5 border border-gray-200 rounded text-sm"
+                  />
+                </div>
+                
+                {/* Occasion */}
+                <div>
+                  <label className="text-xs text-gray-500">Occasion</label>
+                  <input
+                    type="text"
+                    value={editData.listing_attributes?.occasion || ''}
+                    onChange={(e) => updateAttribute('occasion', e.target.value)}
+                    placeholder="t.ex. Birthday, Wedding"
+                    className="w-full mt-1 px-2 py-1.5 border border-gray-200 rounded text-sm"
+                  />
+                </div>
+                
+                {/* Recipient */}
+                <div>
+                  <label className="text-xs text-gray-500">Recipient</label>
+                  <input
+                    type="text"
+                    value={editData.listing_attributes?.recipient || ''}
+                    onChange={(e) => updateAttribute('recipient', e.target.value)}
+                    placeholder="t.ex. For Her, For Mom"
+                    className="w-full mt-1 px-2 py-1.5 border border-gray-200 rounded text-sm"
+                  />
+                </div>
+                
+                {/* Subject */}
+                <div>
+                  <label className="text-xs text-gray-500">Subject</label>
+                  <input
+                    type="text"
+                    value={editData.listing_attributes?.subject || ''}
+                    onChange={(e) => updateAttribute('subject', e.target.value)}
+                    placeholder="t.ex. Nature, Animals, Abstract"
+                    className="w-full mt-1 px-2 py-1.5 border border-gray-200 rounded text-sm"
+                  />
+                </div>
+                
+                {/* Primary Color */}
+                <div>
+                  <label className="text-xs text-gray-500">Primary Color</label>
+                  <input
+                    type="text"
+                    value={editData.listing_attributes?.primary_color || ''}
+                    onChange={(e) => updateAttribute('primary_color', e.target.value)}
+                    placeholder="t.ex. Black, White, Blue"
+                    className="w-full mt-1 px-2 py-1.5 border border-gray-200 rounded text-sm"
+                  />
+                </div>
+                
+                {/* Mood/Feeling */}
+                <div>
+                  <label className="text-xs text-gray-500">Mood/Feeling</label>
+                  <input
+                    type="text"
+                    value={editData.listing_attributes?.mood || ''}
+                    onChange={(e) => updateAttribute('mood', e.target.value)}
+                    placeholder="t.ex. Joyful, Calm, Romantic"
+                    className="w-full mt-1 px-2 py-1.5 border border-gray-200 rounded text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+            
             {/* Edit Actions */}
             <div className="flex gap-2">
               <button
@@ -225,8 +324,63 @@ function ListingCard({ listing, onUpdate, onRemove }) {
             </button>
             
             {isExpanded && (
-              <div className="mt-3 p-3 bg-gray-50 rounded-lg text-sm text-gray-600 whitespace-pre-line">
-                {listing.description}
+              <div className="mt-3 space-y-3">
+                {/* Description */}
+                <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600 whitespace-pre-line">
+                  {listing.description}
+                </div>
+                
+                {/* Listing Attributes Display */}
+                {listing.listing_attributes && Object.keys(listing.listing_attributes).some(k => listing.listing_attributes[k]) && (
+                  <div className="p-3 bg-orange-50 rounded-lg">
+                    <h4 className="text-xs font-medium text-orange-600 uppercase tracking-wide mb-2 flex items-center gap-1">
+                      <Tag className="w-3 h-3" />
+                      Etsy-attribut
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {listing.listing_attributes.holiday && (
+                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white rounded-full border border-orange-200">
+                          <Calendar className="w-3 h-3 text-orange-500" />
+                          {listing.listing_attributes.holiday}
+                        </span>
+                      )}
+                      {listing.listing_attributes.occasion && (
+                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white rounded-full border border-orange-200">
+                          <Gift className="w-3 h-3 text-orange-500" />
+                          {listing.listing_attributes.occasion}
+                        </span>
+                      )}
+                      {listing.listing_attributes.recipient && (
+                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white rounded-full border border-orange-200">
+                          <Heart className="w-3 h-3 text-orange-500" />
+                          {listing.listing_attributes.recipient}
+                        </span>
+                      )}
+                      {listing.listing_attributes.subject && (
+                        <span className="text-xs px-2 py-1 bg-white rounded-full border border-orange-200">
+                          📌 {listing.listing_attributes.subject}
+                        </span>
+                      )}
+                      {listing.listing_attributes.primary_color && (
+                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white rounded-full border border-orange-200">
+                          <Palette className="w-3 h-3 text-orange-500" />
+                          {listing.listing_attributes.primary_color}
+                        </span>
+                      )}
+                      {listing.listing_attributes.mood && (
+                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white rounded-full border border-orange-200">
+                          <Sparkles className="w-3 h-3 text-orange-500" />
+                          {listing.listing_attributes.mood}
+                        </span>
+                      )}
+                      {listing.listing_attributes.style && Array.isArray(listing.listing_attributes.style) && listing.listing_attributes.style.map((s, i) => (
+                        <span key={i} className="text-xs px-2 py-1 bg-white rounded-full border border-orange-200">
+                          🎨 {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </>

@@ -198,9 +198,19 @@ Apply ALL your Etsy SEO expertise to generate:
 {{
     "title": "YOUR OPTIMIZED 140-CHAR TITLE HERE",
     "description": "YOUR FULL DESCRIPTION WITH EMOJIS AND FORMATTING",
+    
+    "listing_attributes": {{
+        "holiday": "relevant holiday or null (e.g., Christmas, Valentine's Day, Mother's Day, Halloween)",
+        "occasion": "primary occasion or null (e.g., Birthday, Wedding, Anniversary, Graduation)",
+        "recipient": "target recipient or null (e.g., For Her, For Him, For Kids, For Mom, For Teacher)",
+        "subject": "main subject/theme or null (e.g., Nature, Animals, Abstract, Typography)",
+        "style": ["style1", "style2"],
+        "primary_color": "main color or null (e.g., Black, White, Blue, Pink, Gold)",
+        "secondary_color": "secondary color or null",
+        "mood": "emotional feeling or null (e.g., Joyful, Calm, Romantic, Inspirational, Fun)"
+    }},
     "tags": ["tag1", "tag2", ... exactly 13 tags],
     "category": "Primary Category > Subcategory > Specific",
-    "style": "OneWordAesthetic",
     "primary_keywords": ["top", "3", "keywords"],
     "long_tail_phrases": ["specific phrase buyers search", "another long tail"],
     "target_buyer": "Description of ideal buyer persona",
@@ -211,7 +221,15 @@ CRITICAL REQUIREMENTS:
 ✅ Title: Front-load with highest-value keyword, use full 140 characters
 ✅ Tags: Exactly 13 unique multi-word phrases, no single words, no title repeats
 ✅ Description: Hook in first 160 chars, use emojis, bullet points, answer FAQs
+✅ Listing Attributes: Fill in holiday, occasion, recipient, subject, style, colors, mood based on the image
 ✅ Think like the BUYER - what would they type in Etsy search?
+
+IMPORTANT FOR listing_attributes:
+- Only fill fields that genuinely apply to this product
+- Use null for fields that don't apply
+- style array should have 1-2 descriptive style terms
+- Colors should match actual colors visible in the image/product
+- Mood should reflect the emotional feeling the product evokes
 
 Respond with ONLY valid JSON. No markdown, no explanation."""
 
@@ -272,6 +290,28 @@ Respond with ONLY valid JSON. No markdown, no explanation."""
         if 'title' in result and len(result['title']) > 140:
             result['title'] = result['title'][:137] + '...'
         
+        # Ensure listing_attributes exists with proper structure
+        if 'listing_attributes' not in result:
+            result['listing_attributes'] = {
+                'holiday': None,
+                'occasion': None,
+                'recipient': None,
+                'subject': None,
+                'style': [],
+                'primary_color': None,
+                'secondary_color': None,
+                'mood': None
+            }
+        else:
+            # Validate listing_attributes structure
+            attrs = result['listing_attributes']
+            # Ensure style is a list
+            if 'style' in attrs and not isinstance(attrs['style'], list):
+                attrs['style'] = [attrs['style']] if attrs['style'] else []
+            # Limit styles to max 2
+            if 'style' in attrs:
+                attrs['style'] = attrs['style'][:2]
+        
         return result
         
     except json.JSONDecodeError as e:
@@ -326,7 +366,16 @@ Message us anytime - we're here to help!
                 'instant access file'
             ],
             'category': 'Digital Downloads > Graphics',
-            'style': 'Modern',
+            'listing_attributes': {
+                'holiday': None,
+                'occasion': None,
+                'recipient': None,
+                'subject': None,
+                'style': ['Modern'],
+                'primary_color': None,
+                'secondary_color': None,
+                'mood': None
+            },
             'primary_keywords': ['digital download', 'instant download', 'commercial use'],
             'long_tail_phrases': ['instant digital download for commercial use', 'printable design template'],
             'target_buyer': 'Creative entrepreneurs and small business owners',
