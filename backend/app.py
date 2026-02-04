@@ -1,5 +1,5 @@
 ﻿"""
-Etsy Bulk Uploader - Flask Backend
+List-And-Go - Flask Backend
 
 Main application file with all API routes.
 """
@@ -62,7 +62,7 @@ app = create_app(os.environ.get('FLASK_ENV', 'development'))
 # Root route for Render health check and info
 @app.route('/')
 def index():
-    return 'Etsy Bulk Uploader backend is running!'
+    return 'List-And-Go backend is running!'
 
 
 # ============== Template Routes ==============

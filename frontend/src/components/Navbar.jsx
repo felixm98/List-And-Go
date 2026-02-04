@@ -44,7 +44,7 @@ function Navbar({ listingsCount }) {
               <Upload className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold text-lg text-etsy-black">
-              Etsy Bulk Uploader
+              List-And-Go
             </span>
           </Link>
 

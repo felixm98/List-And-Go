@@ -1,5 +1,5 @@
 """
-Scheduler for Etsy Bulk Uploader
+Scheduler for List-And-Go
 
 Handles scheduled publishing of listings using APScheduler
 with PostgreSQL job store for persistence.

@@ -1,5 +1,5 @@
 /**
- * API Service for Etsy Bulk Uploader
+ * API Service for List-And-Go
  * Handles all communication with the backend
  */
 
