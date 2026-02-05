@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { 
   X, Save, Loader2, Package, DollarSign, Tag, Truck, 
-  RotateCcw, Sparkles, FileText, ChevronDown, ChevronUp,
+  RotateCcw, Sparkles, FileText, ChevronDown, ChevronUp, ChevronRight,
   AlertCircle, FolderTree, Search, Palette
 } from 'lucide-react'
 import { api } from '../services/api'
@@ -117,6 +117,8 @@ export default function PresetEditor({ preset, onSave, onClose }) {
   // Category search
   const [categorySearch, setCategorySearch] = useState('')
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
+  const [showCategoryBrowser, setShowCategoryBrowser] = useState(false)
+  const [expandedCategories, setExpandedCategories] = useState(new Set())
   // Check if in demo mode
   const isDemoMode = localStorage.getItem('demoMode') === 'true' && !localStorage.getItem('accessToken')
   
@@ -441,7 +443,22 @@ export default function PresetEditor({ preset, onSave, onClose }) {
               <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
                 <FolderTree className="w-5 h-5 text-green-600" />
                 Category (required for Etsy)
+                {categories.length > 0 && (
+                  <span className="text-xs font-normal text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                    {categories.length} categories loaded
+                  </span>
+                )}
               </h3>
+              
+              {/* API Status Warning */}
+              {categories.length === 0 && !loadingEtsyData && (
+                <div className="mb-3 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-xs text-amber-700">
+                    ⚠️ Categories could not be loaded from Etsy API. {isDemoMode ? 'Log in with Etsy to access all categories.' : 'Check your API key.'}
+                  </p>
+                </div>
+              )}
+              
               <div className="relative">
                 <div className="flex gap-2">
                   <div className="flex-1 relative">
@@ -458,6 +475,15 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                       className="w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500/50"
                     />
                   </div>
+                  {categories.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowCategoryBrowser(!showCategoryBrowser)}
+                      className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm whitespace-nowrap"
+                    >
+                      {showCategoryBrowser ? 'Hide' : 'Browse All'}
+                    </button>
+                  )}
                 </div>
                 
                 {/* Selected category display */}
@@ -478,7 +504,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                   </div>
                 )}
 
-                {/* Category dropdown */}
+                {/* Category search dropdown */}
                 {showCategoryDropdown && categorySearch && (
                   <div className="absolute z-10 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
                     {categories
@@ -512,19 +538,106 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                     )}
                   </div>
                 )}
+                
+                {/* Full Category Browser */}
+                {showCategoryBrowser && categories.length > 0 && (
+                  <div className="mt-2 bg-white border rounded-lg shadow-lg max-h-72 overflow-y-auto">
+                    <div className="p-2 border-b bg-gray-50 sticky top-0">
+                      <p className="text-xs text-gray-600 font-medium">Browse All Categories ({categories.length})</p>
+                    </div>
+                    <div className="p-2">
+                      {/* Group by top-level category */}
+                      {categories
+                        .filter(cat => !cat.parent_id) // Top-level categories
+                        .map(parentCat => (
+                          <div key={parentCat.id} className="mb-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newExpanded = new Set(expandedCategories)
+                                if (newExpanded.has(parentCat.id)) {
+                                  newExpanded.delete(parentCat.id)
+                                } else {
+                                  newExpanded.add(parentCat.id)
+                                }
+                                setExpandedCategories(newExpanded)
+                              }}
+                              className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-green-50 rounded text-left"
+                            >
+                              <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${expandedCategories.has(parentCat.id) ? 'rotate-90' : ''}`} />
+                              <span className="text-sm font-medium">{parentCat.name}</span>
+                              <span className="text-xs text-gray-400">
+                                ({categories.filter(c => c.parent_id === parentCat.id).length} subcategories)
+                              </span>
+                            </button>
+                            {expandedCategories.has(parentCat.id) && (
+                              <div className="ml-6 border-l pl-2">
+                                {categories
+                                  .filter(cat => cat.parent_id === parentCat.id)
+                                  .map(subCat => (
+                                    <button
+                                      key={subCat.id}
+                                      type="button"
+                                      onClick={() => {
+                                        handleChange('taxonomy_id', subCat.id)
+                                        handleChange('taxonomy_path', `${parentCat.name} > ${subCat.name}`)
+                                        setShowCategoryBrowser(false)
+                                      }}
+                                      className={`w-full text-left px-2 py-1 text-sm hover:bg-green-50 rounded ${
+                                        formData.taxonomy_id === subCat.id ? 'bg-green-100 text-green-700' : ''
+                                      }`}
+                                    >
+                                      {subCat.name}
+                                    </button>
+                                  ))
+                                }
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      }
+                      {categories.filter(cat => !cat.parent_id).length === 0 && (
+                        <div className="text-sm text-gray-500 p-2">
+                          {/* Fallback: show all categories flat */}
+                          {categories.slice(0, 100).map(cat => (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => {
+                                handleChange('taxonomy_id', cat.id)
+                                handleChange('taxonomy_path', cat.name)
+                                setShowCategoryBrowser(false)
+                              }}
+                              className={`w-full text-left px-2 py-1 text-sm hover:bg-green-50 rounded ${
+                                formData.taxonomy_id === cat.id ? 'bg-green-100 text-green-700' : ''
+                              }`}
+                            >
+                              {cat.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
               
-              {/* Common digital categories quick select */}
+              {/* Common categories quick select */}
               <div className="mt-3">
-                <p className="text-xs text-gray-500 mb-2">Quick select for digital products:</p>
+                <p className="text-xs text-gray-500 mb-2">Quick select popular categories:</p>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { id: 2078, name: 'Digital Downloads', path: 'Craft Supplies & Tools > Digital' },
                     { id: 66, name: 'Art & Collectibles', path: 'Art & Collectibles' },
-                    { id: 1, name: 'Accessories', path: 'Accessories' }
+                    { id: 1, name: 'Accessories', path: 'Accessories' },
+                    { id: 69, name: 'Clothing', path: 'Clothing' },
+                    { id: 68, name: 'Home & Living', path: 'Home & Living' },
+                    { id: 70, name: 'Jewelry', path: 'Jewelry' },
+                    { id: 65, name: 'Craft Supplies', path: 'Craft Supplies & Tools' }
                   ].map(cat => (
                     <button
                       key={cat.id}
+                      type="button"
                       onClick={() => {
                         handleChange('taxonomy_id', cat.id)
                         handleChange('taxonomy_path', cat.path)
