@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from flask import Flask, request, jsonify, redirect, session
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
+from sqlalchemy import inspect, text
 
 from config import config
 from models import db, User, Template, Upload, Listing, EtsyToken, ListingPreset, DescriptionTemplate
@@ -29,6 +30,39 @@ from scheduler import init_scheduler, schedule_publish, cancel_scheduled_publish
 import atexit
 
 
+def migrate_database(app):
+    """Add missing columns to existing tables"""
+    with app.app_context():
+        inspector = inspect(db.engine)
+        
+        # Define columns to add for each table
+        migrations = {
+            'listing_presets': [
+                ('is_taxable', 'BOOLEAN DEFAULT 1'),
+                ('is_customizable', 'BOOLEAN DEFAULT 1'),
+                ('production_partner_ids', 'TEXT'),  # JSON stored as TEXT in SQLite
+            ],
+            'listings': [
+                ('styles', 'TEXT'),  # JSON stored as TEXT
+                ('listing_attributes', 'TEXT'),  # JSON stored as TEXT
+            ]
+        }
+        
+        for table_name, columns in migrations.items():
+            if table_name in inspector.get_table_names():
+                existing_columns = [col['name'] for col in inspector.get_columns(table_name)]
+                
+                for col_name, col_type in columns:
+                    if col_name not in existing_columns:
+                        try:
+                            db.session.execute(text(f'ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type}'))
+                            db.session.commit()
+                            print(f"Added column {col_name} to {table_name}")
+                        except Exception as e:
+                            db.session.rollback()
+                            print(f"Column {col_name} might already exist in {table_name}: {e}")
+
+
 def create_app(config_name='default'):
     """Application factory"""
     app = Flask(__name__)
@@ -46,6 +80,9 @@ def create_app(config_name='default'):
     # Create database tables
     with app.app_context():
         db.create_all()
+    
+    # Run migrations for any missing columns
+    migrate_database(app)
     
     # Initialize scheduler
     init_scheduler(app)
