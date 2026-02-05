@@ -47,6 +47,12 @@ def migrate_database(app):
                 ('taxonomy_id', 'INTEGER'),
                 ('taxonomy_path', 'VARCHAR(500)'),
                 ('category_properties', 'TEXT'),  # JSON stored as TEXT in SQLite
+                # New fields for Etsy parity
+                ('sku', 'VARCHAR(50)'),
+                ('primary_color', 'VARCHAR(50)'),
+                ('secondary_color', 'VARCHAR(50)'),
+                ('is_featured', 'BOOLEAN DEFAULT 0'),
+                ('note_to_buyers', 'TEXT'),
             ],
             'listings': [
                 ('styles', 'TEXT'),  # JSON stored as TEXT
@@ -233,7 +239,14 @@ def create_preset():
             # Description
             description_source=data.get('description_source', 'ai'),
             description_template_id=data.get('description_template_id'),
-            manual_description=data.get('manual_description')
+            manual_description=data.get('manual_description'),
+            
+            # New fields for Etsy parity
+            sku=data.get('sku'),
+            primary_color=data.get('primary_color'),
+            secondary_color=data.get('secondary_color'),
+            is_featured=data.get('is_featured', False),
+            note_to_buyers=data.get('note_to_buyers')
         )
         
         db.session.add(preset)
@@ -282,7 +295,8 @@ def update_preset(preset_id):
                   'item_weight', 'item_weight_unit', 'item_length', 'item_width',
                   'item_height', 'item_dimensions_unit', 'processing_min', 'processing_max',
                   'materials', 'styles', 'default_tags', 'category_properties', 'description_source',
-                  'description_template_id', 'manual_description']:
+                  'description_template_id', 'manual_description',
+                  'sku', 'primary_color', 'secondary_color', 'is_featured', 'note_to_buyers']:
         if field in data:
             setattr(preset, field, data[field])
     

@@ -328,6 +328,13 @@ class ListingPreset(db.Model):
     description_template_id = db.Column(db.Integer, db.ForeignKey('description_templates.id'))
     manual_description = db.Column(db.Text)  # Used when description_source = 'manual'
     
+    # === NEW FIELDS FOR ETSY PARITY ===
+    sku = db.Column(db.String(50))  # Stock keeping unit
+    primary_color = db.Column(db.String(50))  # Primary color attribute
+    secondary_color = db.Column(db.String(50))  # Secondary color attribute
+    is_featured = db.Column(db.Boolean, default=False)  # Feature this listing in shop
+    note_to_buyers = db.Column(db.Text)  # Note to buyers for digital items
+    
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -393,6 +400,13 @@ class ListingPreset(db.Model):
             'description_source': self.description_source,
             'description_template_id': self.description_template_id,
             'manual_description': self.manual_description,
+            
+            # New fields for Etsy parity
+            'sku': self.sku,
+            'primary_color': self.primary_color,
+            'secondary_color': self.secondary_color,
+            'is_featured': self.is_featured,
+            'note_to_buyers': self.note_to_buyers,
             
             # Include template name if linked
             'description_template_name': self.description_template.name if self.description_template else None,
