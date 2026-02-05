@@ -44,6 +44,7 @@ def migrate_database(app):
                 ('production_partner_ids', 'TEXT'),  # JSON stored as TEXT in SQLite
                 ('taxonomy_id', 'INTEGER'),
                 ('taxonomy_path', 'VARCHAR(500)'),
+                ('category_properties', 'TEXT'),  # JSON stored as TEXT in SQLite
             ],
             'listings': [
                 ('styles', 'TEXT'),  # JSON stored as TEXT
@@ -225,6 +226,7 @@ def create_preset():
             materials=data.get('materials'),
             styles=data.get('styles'),
             default_tags=data.get('default_tags'),
+            category_properties=data.get('category_properties'),
             
             # Description
             description_source=data.get('description_source', 'ai'),
@@ -277,7 +279,7 @@ def update_preset(preset_id):
                   'personalization_char_count_max', 'personalization_instructions',
                   'item_weight', 'item_weight_unit', 'item_length', 'item_width',
                   'item_height', 'item_dimensions_unit', 'processing_min', 'processing_max',
-                  'materials', 'styles', 'default_tags', 'description_source',
+                  'materials', 'styles', 'default_tags', 'category_properties', 'description_source',
                   'description_template_id', 'manual_description']:
         if field in data:
             setattr(preset, field, data[field])

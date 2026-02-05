@@ -241,6 +241,10 @@ class ApiService {
     return this.request('/api/etsy/categories', { auth: false })
   }
 
+  async getCategoryProperties(taxonomyId) {
+    return this.request(`/api/etsy/categories/${taxonomyId}/properties`, { auth: false })
+  }
+
   async getShopSections() {
     return this.request('/api/etsy/shop-sections')
   }

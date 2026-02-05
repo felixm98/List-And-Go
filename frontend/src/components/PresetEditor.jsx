@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { 
   X, Save, Loader2, Package, DollarSign, Tag, Truck, 
   RotateCcw, Sparkles, FileText, ChevronDown, ChevronUp,
-  AlertCircle, FolderTree, Search
+  AlertCircle, FolderTree, Search, Palette
 } from 'lucide-react'
 import { api } from '../services/api'
 
@@ -91,12 +91,15 @@ export default function PresetEditor({ preset, onSave, onClose }) {
     // New fields
     is_taxable: true,
     is_customizable: true,
-    production_partner_ids: []
+    production_partner_ids: [],
+    // Category-specific properties (dynamically loaded)
+    category_properties: {}
   })
   
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [showCategoryAttributes, setShowCategoryAttributes] = useState(true)
   
   // Etsy data
   const [shippingProfiles, setShippingProfiles] = useState([])
@@ -106,6 +109,10 @@ export default function PresetEditor({ preset, onSave, onClose }) {
   const [categories, setCategories] = useState([])
   const [productionPartners, setProductionPartners] = useState([])
   const [loadingEtsyData, setLoadingEtsyData] = useState(true)
+  
+  // Category properties (dynamic attributes)
+  const [categoryProperties, setCategoryProperties] = useState([])
+  const [loadingProperties, setLoadingProperties] = useState(false)
   
   // Category search
   const [categorySearch, setCategorySearch] = useState('')
@@ -122,11 +129,38 @@ export default function PresetEditor({ preset, onSave, onClose }) {
         ...preset,
         shipping_profile_id: preset.shipping_profile_id || '',
         return_policy_id: preset.return_policy_id || '',
-        shop_section_id: preset.shop_section_id || ''
+        shop_section_id: preset.shop_section_id || '',
+        category_properties: preset.category_properties || {}
       })
+      // Load properties if preset has a taxonomy_id
+      if (preset.taxonomy_id) {
+        loadCategoryProperties(preset.taxonomy_id)
+      }
     }
     loadEtsyData()
   }, [preset])
+
+  // Load category properties when taxonomy changes
+  useEffect(() => {
+    if (formData.taxonomy_id) {
+      loadCategoryProperties(formData.taxonomy_id)
+    } else {
+      setCategoryProperties([])
+    }
+  }, [formData.taxonomy_id])
+
+  const loadCategoryProperties = async (taxonomyId) => {
+    setLoadingProperties(true)
+    try {
+      const data = await api.getCategoryProperties(taxonomyId)
+      setCategoryProperties(data.properties || [])
+    } catch (err) {
+      console.error('Failed to load category properties:', err)
+      setCategoryProperties([])
+    } finally {
+      setLoadingProperties(false)
+    }
+  }
 
   const loadEtsyData = async () => {
     setLoadingEtsyData(true)
@@ -180,6 +214,16 @@ export default function PresetEditor({ preset, onSave, onClose }) {
 
   const handleRemoveMaterial = (material) => {
     handleChange('materials', formData.materials.filter(m => m !== material))
+  }
+
+  const handlePropertyChange = (propertyId, value, isMultiple = false) => {
+    setFormData(prev => ({
+      ...prev,
+      category_properties: {
+        ...prev.category_properties,
+        [propertyId]: isMultiple ? value : (value || null)
+      }
+    }))
   }
 
   const handleSave = async () => {
@@ -376,6 +420,125 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                 </div>
               </div>
             </div>
+
+            {/* Category Properties (Dynamic Attributes) */}
+            {formData.taxonomy_id && (
+              <div className="bg-indigo-50 rounded-lg p-4">
+                <button
+                  type="button"
+                  onClick={() => setShowCategoryAttributes(!showCategoryAttributes)}
+                  className="w-full flex items-center justify-between font-medium text-gray-900 mb-3"
+                >
+                  <span className="flex items-center gap-2">
+                    <Palette className="w-5 h-5 text-indigo-600" />
+                    Kategori-attribut ({categoryProperties.length} tillgängliga)
+                  </span>
+                  {showCategoryAttributes ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+
+                {showCategoryAttributes && (
+                  <>
+                    {loadingProperties ? (
+                      <div className="flex items-center gap-2 text-gray-500 py-4">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Laddar attribut...
+                      </div>
+                    ) : categoryProperties.length === 0 ? (
+                      <p className="text-sm text-gray-500">
+                        Inga specifika attribut för denna kategori.
+                      </p>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {categoryProperties.map(prop => (
+                          <div key={prop.property_id}>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {prop.display_name || prop.name}
+                              {prop.is_required && <span className="text-red-500 ml-1">*</span>}
+                            </label>
+                            
+                            {/* Render based on property type */}
+                            {prop.possible_values && prop.possible_values.length > 0 ? (
+                              prop.supports_attributes && prop.possible_values.length > 10 ? (
+                                // Multi-select for properties with many values (like colors)
+                                <select
+                                  multiple
+                                  value={formData.category_properties[prop.property_id] || []}
+                                  onChange={(e) => {
+                                    const selected = Array.from(e.target.selectedOptions, opt => parseInt(opt.value))
+                                    handlePropertyChange(prop.property_id, selected, true)
+                                  }}
+                                  className="w-full px-3 py-2 border rounded-lg bg-white h-24"
+                                >
+                                  {prop.possible_values.map(val => (
+                                    <option key={val.value_id} value={val.value_id}>
+                                      {val.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                // Dropdown for properties with few values
+                                <select
+                                  value={formData.category_properties[prop.property_id] || ''}
+                                  onChange={(e) => handlePropertyChange(prop.property_id, parseInt(e.target.value) || null)}
+                                  className="w-full px-3 py-2 border rounded-lg bg-white"
+                                >
+                                  <option value="">-- Välj --</option>
+                                  {prop.possible_values.map(val => (
+                                    <option key={val.value_id} value={val.value_id}>
+                                      {val.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              )
+                            ) : prop.scales && prop.scales.length > 0 ? (
+                              // For scaled properties (like dimensions)
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  value={formData.category_properties[`${prop.property_id}_value`] || ''}
+                                  onChange={(e) => handlePropertyChange(`${prop.property_id}_value`, e.target.value)}
+                                  placeholder="Värde"
+                                  className="flex-1 px-3 py-2 border rounded-lg"
+                                />
+                                <select
+                                  value={formData.category_properties[`${prop.property_id}_scale`] || ''}
+                                  onChange={(e) => handlePropertyChange(`${prop.property_id}_scale`, parseInt(e.target.value) || null)}
+                                  className="px-3 py-2 border rounded-lg bg-white"
+                                >
+                                  <option value="">Enhet</option>
+                                  {prop.scales.map(scale => (
+                                    <option key={scale.scale_id} value={scale.scale_id}>
+                                      {scale.display_name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            ) : (
+                              // Free-text input
+                              <input
+                                type="text"
+                                value={formData.category_properties[prop.property_id] || ''}
+                                onChange={(e) => handlePropertyChange(prop.property_id, e.target.value)}
+                                placeholder={`Ange ${prop.display_name || prop.name}`}
+                                className="w-full px-3 py-2 border rounded-lg"
+                              />
+                            )}
+                            
+                            {prop.description && (
+                              <p className="text-xs text-gray-500 mt-1">{prop.description}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <p className="text-xs text-gray-400 mt-3">
+                      💡 Dessa attribut är specifika för den valda kategorin och hjälper köpare att hitta dina produkter.
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
 
             {/* Price & Quantity */}
             <div className="bg-gray-50 rounded-lg p-4">

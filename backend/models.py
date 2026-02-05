@@ -320,6 +320,9 @@ class ListingPreset(db.Model):
     # Default tags (can be overridden per listing)
     default_tags = db.Column(db.JSON)  # Up to 13 tags
     
+    # Category-specific properties (dynamic attributes like color, holiday, occasion, etc.)
+    category_properties = db.Column(db.JSON)  # {property_id: value_id or [value_ids]}
+    
     # === DESCRIPTION SOURCE ===
     description_source = db.Column(db.String(20), default='ai')  # 'ai', 'template', 'manual'
     description_template_id = db.Column(db.Integer, db.ForeignKey('description_templates.id'))
@@ -384,6 +387,7 @@ class ListingPreset(db.Model):
             'materials': self.materials or [],
             'styles': self.styles or [],
             'default_tags': self.default_tags or [],
+            'category_properties': self.category_properties or {},
             
             # Description
             'description_source': self.description_source,
