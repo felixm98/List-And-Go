@@ -1,0 +1,1253 @@
+import { useState, useEffect } from 'react'
+import { 
+  X, Save, Loader2, Package, DollarSign, Tag, Truck, 
+  RotateCcw, Sparkles, FileText, ChevronDown, ChevronUp, ChevronRight,
+  AlertCircle, FolderTree, Search, Palette
+} from 'lucide-react'
+import { api } from '../services/api'
+
+// Etsy enum values
+const WHO_MADE_OPTIONS = [
+  { value: 'i_did', label: 'I did' },
+  { value: 'someone_else', label: 'Someone else did' },
+  { value: 'collective', label: 'A collective' }
+]
+
+const WHEN_MADE_OPTIONS = [
+  { value: 'made_to_order', label: 'Made to order' },
+  { value: '2020_2026', label: '2020-2026' },
+  { value: '2010_2019', label: '2010-2019' },
+  { value: '2007_2009', label: '2007-2009' },
+  { value: 'before_2007', label: 'Before 2007' },
+  { value: '2000_2006', label: '2000-2006' },
+  { value: '1990s', label: '1990s' },
+  { value: '1980s', label: '1980s' },
+  { value: '1970s', label: '1970s' },
+  { value: '1960s', label: '1960s' },
+  { value: '1950s', label: '1950s' }
+]
+
+const LISTING_TYPE_OPTIONS = [
+  { value: 'download', label: 'Digital download' },
+  { value: 'physical', label: 'Physical product' },
+  { value: 'both', label: 'Both' }
+]
+
+const WEIGHT_UNITS = [
+  { value: 'oz', label: 'oz' },
+  { value: 'lb', label: 'lb' },
+  { value: 'g', label: 'g' },
+  { value: 'kg', label: 'kg' }
+]
+
+const DIMENSION_UNITS = [
+  { value: 'in', label: 'in' },
+  { value: 'ft', label: 'ft' },
+  { value: 'mm', label: 'mm' },
+  { value: 'cm', label: 'cm' },
+  { value: 'm', label: 'm' }
+]
+
+const DESCRIPTION_SOURCES = [
+  { value: 'ai', label: '🤖 AI-generated', description: 'Generated automatically based on the image' },
+  { value: 'template', label: '📝 Use template', description: 'Use one of your saved templates' },
+  { value: 'manual', label: '✍️ Custom text', description: 'Write a fixed description for this preset' }
+]
+
+export default function PresetEditor({ preset, onSave, onClose }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    preset_type: 'digital',
+    price: 4.99,
+    quantity: 999,
+    who_made: 'i_did',
+    when_made: 'made_to_order',
+    is_supply: false,
+    taxonomy_id: null,
+    taxonomy_path: '',
+    listing_type: 'download',
+    shipping_profile_id: '',
+    return_policy_id: '',
+    shop_section_id: '',
+    should_auto_renew: true,
+    is_personalizable: false,
+    personalization_is_required: false,
+    personalization_char_count_max: 256,
+    personalization_instructions: '',
+    item_weight: null,
+    item_weight_unit: 'oz',
+    item_length: null,
+    item_width: null,
+    item_height: null,
+    item_dimensions_unit: 'in',
+    processing_min: null,
+    processing_max: null,
+    materials: [],
+    styles: [],
+    default_tags: [],
+    description_source: 'ai',
+    description_template_id: null,
+    manual_description: '',
+    // New fields
+    is_taxable: true,
+    is_customizable: true,
+    production_partner_ids: [],
+    // Category-specific properties (dynamically loaded)
+    category_properties: {}
+  })
+  
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState(null)
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [showCategoryAttributes, setShowCategoryAttributes] = useState(true)
+  
+  // Etsy data
+  const [shippingProfiles, setShippingProfiles] = useState([])
+  const [returnPolicies, setReturnPolicies] = useState([])
+  const [shopSections, setShopSections] = useState([])
+  const [descriptionTemplates, setDescriptionTemplates] = useState([])
+  const [categories, setCategories] = useState([])
+  const [productionPartners, setProductionPartners] = useState([])
+  const [loadingEtsyData, setLoadingEtsyData] = useState(true)
+  
+  // Category properties (dynamic attributes)
+  const [categoryProperties, setCategoryProperties] = useState([])
+  const [loadingProperties, setLoadingProperties] = useState(false)
+  
+  // Category search
+  const [categorySearch, setCategorySearch] = useState('')
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
+  const [showCategoryBrowser, setShowCategoryBrowser] = useState(false)
+  const [expandedCategories, setExpandedCategories] = useState(new Set())
+  // Check if in demo mode
+  const isDemoMode = localStorage.getItem('demoMode') === 'true' && !localStorage.getItem('accessToken')
+  
+  // Tags/materials input
+  const [tagInput, setTagInput] = useState('')
+  const [materialInput, setMaterialInput] = useState('')
+  const [propertiesError, setPropertiesError] = useState(null)
+
+  // Mock category properties for demo mode
+  const getMockCategoryProperties = (taxonomyId) => {
+    // Common properties that appear in many categories
+    return [
+      {
+        property_id: 513,
+        name: 'primary_color',
+        display_name: 'Primary color',
+        is_required: false,
+        possible_values: [
+          { value_id: 1, name: 'Black' },
+          { value_id: 2, name: 'White' },
+          { value_id: 3, name: 'Blue' },
+          { value_id: 4, name: 'Red' },
+          { value_id: 5, name: 'Green' },
+          { value_id: 6, name: 'Yellow' },
+          { value_id: 7, name: 'Purple' },
+          { value_id: 8, name: 'Pink' },
+          { value_id: 9, name: 'Orange' },
+          { value_id: 10, name: 'Brown' },
+          { value_id: 11, name: 'Gray' },
+          { value_id: 12, name: 'Beige' }
+        ]
+      },
+      {
+        property_id: 514,
+        name: 'secondary_color',
+        display_name: 'Secondary color',
+        is_required: false,
+        possible_values: [
+          { value_id: 1, name: 'Black' },
+          { value_id: 2, name: 'White' },
+          { value_id: 3, name: 'Blue' },
+          { value_id: 4, name: 'Red' },
+          { value_id: 5, name: 'Green' },
+          { value_id: 6, name: 'Yellow' },
+          { value_id: 7, name: 'Purple' },
+          { value_id: 8, name: 'Pink' }
+        ]
+      },
+      {
+        property_id: 46803063641,
+        name: 'holiday',
+        display_name: 'Holiday',
+        is_required: false,
+        possible_values: [
+          { value_id: 1, name: 'Christmas' },
+          { value_id: 2, name: 'Halloween' },
+          { value_id: 3, name: 'Valentine\'s Day' },
+          { value_id: 4, name: 'Easter' },
+          { value_id: 5, name: 'Thanksgiving' },
+          { value_id: 6, name: 'New Year' },
+          { value_id: 7, name: 'Mother\'s Day' },
+          { value_id: 8, name: 'Father\'s Day' }
+        ]
+      },
+      {
+        property_id: 46803063659,
+        name: 'occasion',
+        display_name: 'Occasion',
+        is_required: false,
+        possible_values: [
+          { value_id: 1, name: 'Birthday' },
+          { value_id: 2, name: 'Wedding' },
+          { value_id: 3, name: 'Anniversary' },
+          { value_id: 4, name: 'Graduation' },
+          { value_id: 5, name: 'Housewarming' },
+          { value_id: 6, name: 'Baby shower' }
+        ]
+      },
+      {
+        property_id: 47626756645,
+        name: 'orientation',
+        display_name: 'Orientation',
+        is_required: false,
+        possible_values: [
+          { value_id: 1, name: 'Horizontal' },
+          { value_id: 2, name: 'Vertical' },
+          { value_id: 3, name: 'Square' }
+        ]
+      },
+      {
+        property_id: 52047899002,
+        name: 'room',
+        display_name: 'Room',
+        is_required: false,
+        possible_values: [
+          { value_id: 1, name: 'Living room' },
+          { value_id: 2, name: 'Bedroom' },
+          { value_id: 3, name: 'Bathroom' },
+          { value_id: 4, name: 'Kitchen' },
+          { value_id: 5, name: 'Office' },
+          { value_id: 6, name: 'Nursery' }
+        ]
+      }
+    ]
+  }
+
+  useEffect(() => {
+    if (preset) {
+      setFormData({
+        ...formData,
+        ...preset,
+        shipping_profile_id: preset.shipping_profile_id || '',
+        return_policy_id: preset.return_policy_id || '',
+        shop_section_id: preset.shop_section_id || '',
+        category_properties: preset.category_properties || {}
+      })
+      // Load properties if preset has a taxonomy_id
+      if (preset.taxonomy_id) {
+        loadCategoryProperties(preset.taxonomy_id)
+      }
+    }
+    loadEtsyData()
+  }, [preset])
+
+  // Load category properties when taxonomy changes
+  useEffect(() => {
+    if (formData.taxonomy_id) {
+      loadCategoryProperties(formData.taxonomy_id)
+    } else {
+      setCategoryProperties([])
+    }
+  }, [formData.taxonomy_id])
+
+  const loadCategoryProperties = async (taxonomyId) => {
+    setLoadingProperties(true)
+    setPropertiesError(null)
+    
+    // In demo mode, use mock data
+    if (isDemoMode) {
+      setCategoryProperties(getMockCategoryProperties(taxonomyId))
+      setLoadingProperties(false)
+      return
+    }
+    
+    try {
+      const data = await api.getCategoryProperties(taxonomyId)
+      setCategoryProperties(data.properties || [])
+      
+      // If no properties returned, might be API key issue
+      if (!data.properties || data.properties.length === 0) {
+        setPropertiesError('no_properties')
+      }
+    } catch (err) {
+      console.error('Failed to load category properties:', err)
+      setCategoryProperties([])
+      // Check if it's an API key error
+      if (err.message?.includes('API') || err.message?.includes('401') || err.message?.includes('403')) {
+        setPropertiesError('api_key')
+      } else {
+        setPropertiesError('fetch_error')
+      }
+    } finally {
+      setLoadingProperties(false)
+    }
+  }
+
+  const loadEtsyData = async () => {
+    setLoadingEtsyData(true)
+    try {
+      const [profiles, policies, sections, templates, cats] = await Promise.all([
+        api.getShippingProfiles().catch(() => []),
+        api.getReturnPolicies().catch(() => []),
+        api.getShopSections().catch(() => []),
+        api.getDescriptionTemplates().catch(() => []),
+        api.getCategories().catch(() => [])
+      ])
+      setShippingProfiles(profiles)
+      setReturnPolicies(policies)
+      setShopSections(sections)
+      setDescriptionTemplates(templates)
+      setCategories(cats)
+    } catch (err) {
+      console.error('Failed to load Etsy data:', err)
+    } finally {
+      setLoadingEtsyData(false)
+    }
+  }
+
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleAddTag = (e) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      e.preventDefault()
+      if (formData.default_tags.length < 13 && !formData.default_tags.includes(tagInput.trim())) {
+        handleChange('default_tags', [...formData.default_tags, tagInput.trim()])
+      }
+      setTagInput('')
+    }
+  }
+
+  const handleRemoveTag = (tag) => {
+    handleChange('default_tags', formData.default_tags.filter(t => t !== tag))
+  }
+
+  const handleAddMaterial = (e) => {
+    if (e.key === 'Enter' && materialInput.trim()) {
+      e.preventDefault()
+      if (!formData.materials.includes(materialInput.trim())) {
+        handleChange('materials', [...formData.materials, materialInput.trim()])
+      }
+      setMaterialInput('')
+    }
+  }
+
+  const handleRemoveMaterial = (material) => {
+    handleChange('materials', formData.materials.filter(m => m !== material))
+  }
+
+  const handlePropertyChange = (propertyId, value, isMultiple = false) => {
+    setFormData(prev => ({
+      ...prev,
+      category_properties: {
+        ...prev.category_properties,
+        [propertyId]: isMultiple ? value : (value || null)
+      }
+    }))
+  }
+
+  const handleSave = async () => {
+    if (!formData.name.trim()) {
+      setError('Preset name is required')
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+
+    try {
+      const dataToSave = {
+        ...formData,
+        shipping_profile_id: formData.shipping_profile_id || null,
+        return_policy_id: formData.return_policy_id || null,
+        shop_section_id: formData.shop_section_id || null,
+        description_template_id: formData.description_source === 'template' ? formData.description_template_id : null,
+        taxonomy_id: formData.taxonomy_id || null,
+        production_partner_ids: formData.production_partner_ids?.length > 0 ? formData.production_partner_ids : null
+      }
+
+      if (preset?.id) {
+        await api.updatePreset(preset.id, dataToSave)
+      } else {
+        await api.createPreset(dataToSave)
+      }
+      onSave()
+    } catch (err) {
+      setError(err.message || 'Could not save preset')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const isPhysical = formData.listing_type === 'physical' || formData.listing_type === 'both'
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-brand-primary to-brand-dark">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <Package className="w-6 h-6" />
+            {preset ? 'Edit Preset' : 'Create New Preset'}
+          </h2>
+          <button onClick={onClose} className="text-white/80 hover:text-white">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="overflow-y-auto p-6 max-h-[calc(90vh-140px)]">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+              <AlertCircle className="w-5 h-5" />
+              {error}
+            </div>
+          )}
+
+          {/* Basic Info */}
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Preset Name *
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => handleChange('name', e.target.value)}
+                  placeholder="e.g. Digital Wall Art"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-primary/50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Listing Type *
+                </label>
+                <select
+                  value={formData.listing_type}
+                  onChange={(e) => handleChange('listing_type', e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-primary/50"
+                >
+                  {LISTING_TYPE_OPTIONS.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Category (Taxonomy) - REQUIRED */}
+            <div className="bg-green-50 rounded-lg p-4">
+              <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                <FolderTree className="w-5 h-5 text-green-600" />
+                Category (required for Etsy)
+                {categories.length > 0 && (
+                  <span className="text-xs font-normal text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                    {categories.length} categories loaded
+                  </span>
+                )}
+              </h3>
+              
+              {/* API Status Warning */}
+              {categories.length === 0 && !loadingEtsyData && (
+                <div className="mb-3 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-xs text-amber-700">
+                    ⚠️ Categories could not be loaded from Etsy API. {isDemoMode ? 'Log in with Etsy to access all categories.' : 'Check your API key.'}
+                  </p>
+                </div>
+              )}
+              
+              <div className="relative">
+                <div className="flex gap-2">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      value={categorySearch}
+                      onChange={(e) => {
+                        setCategorySearch(e.target.value)
+                        setShowCategoryDropdown(true)
+                      }}
+                      onFocus={() => setShowCategoryDropdown(true)}
+                      placeholder="Search category..."
+                      className="w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500/50"
+                    />
+                  </div>
+                  {categories.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowCategoryBrowser(!showCategoryBrowser)}
+                      className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm whitespace-nowrap"
+                    >
+                      {showCategoryBrowser ? 'Hide' : 'Browse All'}
+                    </button>
+                  )}
+                </div>
+                
+                {/* Selected category display */}
+                {formData.taxonomy_path && (
+                  <div className="mt-2 p-2 bg-green-100 rounded-lg flex items-center justify-between">
+                    <span className="text-sm text-green-800">
+                      <strong>Selected:</strong> {formData.taxonomy_path}
+                    </span>
+                    <button
+                      onClick={() => {
+                        handleChange('taxonomy_id', null)
+                        handleChange('taxonomy_path', '')
+                      }}
+                      className="text-green-600 hover:text-red-500 text-sm"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
+
+                {/* Category search dropdown */}
+                {showCategoryDropdown && categorySearch && (
+                  <div className="absolute z-10 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {categories
+                      .filter(cat => 
+                        cat.name?.toLowerCase().includes(categorySearch.toLowerCase()) ||
+                        cat.full_path_taxonomy_ids?.some(id => 
+                          categories.find(c => c.id === id)?.name?.toLowerCase().includes(categorySearch.toLowerCase())
+                        )
+                      )
+                      .slice(0, 50)
+                      .map(cat => (
+                        <button
+                          key={cat.id}
+                          onClick={() => {
+                            handleChange('taxonomy_id', cat.id)
+                            handleChange('taxonomy_path', cat.name || `Category ${cat.id}`)
+                            setCategorySearch('')
+                            setShowCategoryDropdown(false)
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-green-50 text-sm border-b last:border-0"
+                        >
+                          <div className="font-medium">{cat.name}</div>
+                          {cat.path && <div className="text-xs text-gray-500">{cat.path}</div>}
+                        </button>
+                      ))
+                    }
+                    {categories.filter(cat => 
+                      cat.name?.toLowerCase().includes(categorySearch.toLowerCase())
+                    ).length === 0 && (
+                      <div className="px-3 py-2 text-sm text-gray-500">No categories found</div>
+                    )}
+                  </div>
+                )}
+                
+                {/* Full Category Browser */}
+                {showCategoryBrowser && categories.length > 0 && (
+                  <div className="mt-2 bg-white border rounded-lg shadow-lg max-h-72 overflow-y-auto">
+                    <div className="p-2 border-b bg-gray-50 sticky top-0">
+                      <p className="text-xs text-gray-600 font-medium">Browse All Categories ({categories.length})</p>
+                    </div>
+                    <div className="p-2">
+                      {/* Group by top-level category */}
+                      {categories
+                        .filter(cat => !cat.parent_id) // Top-level categories
+                        .map(parentCat => (
+                          <div key={parentCat.id} className="mb-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newExpanded = new Set(expandedCategories)
+                                if (newExpanded.has(parentCat.id)) {
+                                  newExpanded.delete(parentCat.id)
+                                } else {
+                                  newExpanded.add(parentCat.id)
+                                }
+                                setExpandedCategories(newExpanded)
+                              }}
+                              className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-green-50 rounded text-left"
+                            >
+                              <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${expandedCategories.has(parentCat.id) ? 'rotate-90' : ''}`} />
+                              <span className="text-sm font-medium">{parentCat.name}</span>
+                              <span className="text-xs text-gray-400">
+                                ({categories.filter(c => c.parent_id === parentCat.id).length} subcategories)
+                              </span>
+                            </button>
+                            {expandedCategories.has(parentCat.id) && (
+                              <div className="ml-6 border-l pl-2">
+                                {categories
+                                  .filter(cat => cat.parent_id === parentCat.id)
+                                  .map(subCat => (
+                                    <button
+                                      key={subCat.id}
+                                      type="button"
+                                      onClick={() => {
+                                        handleChange('taxonomy_id', subCat.id)
+                                        handleChange('taxonomy_path', `${parentCat.name} > ${subCat.name}`)
+                                        setShowCategoryBrowser(false)
+                                      }}
+                                      className={`w-full text-left px-2 py-1 text-sm hover:bg-green-50 rounded ${
+                                        formData.taxonomy_id === subCat.id ? 'bg-green-100 text-green-700' : ''
+                                      }`}
+                                    >
+                                      {subCat.name}
+                                    </button>
+                                  ))
+                                }
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      }
+                      {categories.filter(cat => !cat.parent_id).length === 0 && (
+                        <div className="text-sm text-gray-500 p-2">
+                          {/* Fallback: show all categories flat */}
+                          {categories.slice(0, 100).map(cat => (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => {
+                                handleChange('taxonomy_id', cat.id)
+                                handleChange('taxonomy_path', cat.name)
+                                setShowCategoryBrowser(false)
+                              }}
+                              className={`w-full text-left px-2 py-1 text-sm hover:bg-green-50 rounded ${
+                                formData.taxonomy_id === cat.id ? 'bg-green-100 text-green-700' : ''
+                              }`}
+                            >
+                              {cat.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Common categories quick select */}
+              <div className="mt-3">
+                <p className="text-xs text-gray-500 mb-2">Quick select popular categories:</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: 2078, name: 'Digital Downloads', path: 'Craft Supplies & Tools > Digital' },
+                    { id: 66, name: 'Art & Collectibles', path: 'Art & Collectibles' },
+                    { id: 1, name: 'Accessories', path: 'Accessories' },
+                    { id: 69, name: 'Clothing', path: 'Clothing' },
+                    { id: 68, name: 'Home & Living', path: 'Home & Living' },
+                    { id: 70, name: 'Jewelry', path: 'Jewelry' },
+                    { id: 65, name: 'Craft Supplies', path: 'Craft Supplies & Tools' }
+                  ].map(cat => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => {
+                        handleChange('taxonomy_id', cat.id)
+                        handleChange('taxonomy_path', cat.path)
+                      }}
+                      className={`px-2 py-1 text-xs rounded-full border transition-colors ${
+                        formData.taxonomy_id === cat.id
+                          ? 'bg-green-500 text-white border-green-500'
+                          : 'bg-white text-gray-600 border-gray-300 hover:border-green-400'
+                      }`}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Category Properties (Dynamic Attributes) */}
+            {formData.taxonomy_id && (
+              <div className="bg-indigo-50 rounded-lg p-4">
+                <button
+                  type="button"
+                  onClick={() => setShowCategoryAttributes(!showCategoryAttributes)}
+                  className="w-full flex items-center justify-between font-medium text-gray-900 mb-3"
+                >
+                  <span className="flex items-center gap-2">
+                    <Palette className="w-5 h-5 text-indigo-600" />
+                    Category Attributes ({categoryProperties.length} available)
+                  </span>
+                  {showCategoryAttributes ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+
+                {showCategoryAttributes && (
+                  <>
+                    {loadingProperties ? (
+                      <div className="flex items-center gap-2 text-gray-500 py-4">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Loading attributes...
+                      </div>
+                    ) : categoryProperties.length === 0 ? (
+                      <div className="space-y-2">
+                        {propertiesError === 'api_key' ? (
+                          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                            <p className="text-sm text-amber-800 font-medium">⚠️ Etsy API not available</p>
+                            <p className="text-xs text-amber-600 mt-1">
+                              Category attributes require an active Etsy API key. Connect your Etsy account to see all attributes.
+                            </p>
+                          </div>
+                        ) : propertiesError === 'no_properties' ? (
+                          <p className="text-sm text-gray-500">
+                            This category has no specific attributes, or they could not be loaded.
+                          </p>
+                        ) : (
+                          <div className="p-3 bg-gray-100 border border-gray-200 rounded-lg">
+                            <p className="text-sm text-gray-600">
+                              No specific attributes for this category.
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Attributes like color, holiday and occasion will appear here when available.
+                            </p>
+                          </div>
+                        )}
+                        
+                        {isDemoMode && (
+                          <div className="p-3 bg-indigo-100 border border-indigo-200 rounded-lg">
+                            <p className="text-sm text-indigo-800 font-medium">🎭 Demo Mode Active</p>
+                            <p className="text-xs text-indigo-600 mt-1">
+                              In demo mode, sample attributes are shown. Log in with Etsy to see real attributes for each category.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {categoryProperties.map(prop => (
+                          <div key={prop.property_id}>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {prop.display_name || prop.name}
+                              {prop.is_required && <span className="text-red-500 ml-1">*</span>}
+                            </label>
+                            
+                            {/* Render based on property type */}
+                            {prop.possible_values && prop.possible_values.length > 0 ? (
+                              prop.supports_attributes && prop.possible_values.length > 10 ? (
+                                // Multi-select for properties with many values (like colors)
+                                <select
+                                  multiple
+                                  value={formData.category_properties[prop.property_id] || []}
+                                  onChange={(e) => {
+                                    const selected = Array.from(e.target.selectedOptions, opt => parseInt(opt.value))
+                                    handlePropertyChange(prop.property_id, selected, true)
+                                  }}
+                                  className="w-full px-3 py-2 border rounded-lg bg-white h-24"
+                                >
+                                  {prop.possible_values.map(val => (
+                                    <option key={val.value_id} value={val.value_id}>
+                                      {val.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                // Dropdown for properties with few values
+                                <select
+                                  value={formData.category_properties[prop.property_id] || ''}
+                                  onChange={(e) => handlePropertyChange(prop.property_id, parseInt(e.target.value) || null)}
+                                  className="w-full px-3 py-2 border rounded-lg bg-white"
+                                >
+                                  <option value="">-- Select --</option>
+                                  {prop.possible_values.map(val => (
+                                    <option key={val.value_id} value={val.value_id}>
+                                      {val.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              )
+                            ) : prop.scales && prop.scales.length > 0 ? (
+                              // For scaled properties (like dimensions)
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  value={formData.category_properties[`${prop.property_id}_value`] || ''}
+                                  onChange={(e) => handlePropertyChange(`${prop.property_id}_value`, e.target.value)}
+                                  placeholder="Value"
+                                  className="flex-1 px-3 py-2 border rounded-lg"
+                                />
+                                <select
+                                  value={formData.category_properties[`${prop.property_id}_scale`] || ''}
+                                  onChange={(e) => handlePropertyChange(`${prop.property_id}_scale`, parseInt(e.target.value) || null)}
+                                  className="px-3 py-2 border rounded-lg bg-white"
+                                >
+                                  <option value="">Unit</option>
+                                  {prop.scales.map(scale => (
+                                    <option key={scale.scale_id} value={scale.scale_id}>
+                                      {scale.display_name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            ) : (
+                              // Free-text input
+                              <input
+                                type="text"
+                                value={formData.category_properties[prop.property_id] || ''}
+                                onChange={(e) => handlePropertyChange(prop.property_id, e.target.value)}
+                                placeholder={`Enter ${prop.display_name || prop.name}`}
+                                className="w-full px-3 py-2 border rounded-lg"
+                              />
+                            )}
+                            
+                            {prop.description && (
+                              <p className="text-xs text-gray-500 mt-1">{prop.description}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <p className="text-xs text-gray-400 mt-3">
+                      💡 These attributes are specific to the selected category and help buyers find your products.
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Price & Quantity */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-green-600" />
+                Price & Quantity
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Price (USD)</label>
+                  <input
+                    type="number"
+                    min="0.20"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) => handleChange('price', parseFloat(e.target.value))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Quantity</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.quantity}
+                    onChange={(e) => handleChange('quantity', parseInt(e.target.value))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Who made</label>
+                  <select
+                    value={formData.who_made}
+                    onChange={(e) => handleChange('who_made', e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  >
+                    {WHO_MADE_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">When made</label>
+                  <select
+                    value={formData.when_made}
+                    onChange={(e) => handleChange('when_made', e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  >
+                    {WHEN_MADE_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_supply}
+                    onChange={(e) => handleChange('is_supply', e.target.checked)}
+                    className="w-4 h-4 rounded text-brand-primary"
+                  />
+                  <span className="text-sm text-gray-600">This is a craft supply/tool</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.should_auto_renew}
+                    onChange={(e) => handleChange('should_auto_renew', e.target.checked)}
+                    className="w-4 h-4 rounded text-brand-primary"
+                  />
+                  <span className="text-sm text-gray-600">Auto-renew</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_taxable}
+                    onChange={(e) => handleChange('is_taxable', e.target.checked)}
+                    className="w-4 h-4 rounded text-brand-primary"
+                  />
+                  <span className="text-sm text-gray-600">Taxable</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_customizable}
+                    onChange={(e) => handleChange('is_customizable', e.target.checked)}
+                    className="w-4 h-4 rounded text-brand-primary"
+                  />
+                  <span className="text-sm text-gray-600">Can be customized</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Shipping & Returns (for physical) */}
+            {isPhysical && (
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                  <Truck className="w-5 h-5 text-blue-600" />
+                  Shipping & Returns
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Shipping Profile</label>
+                    <select
+                      value={formData.shipping_profile_id}
+                      onChange={(e) => handleChange('shipping_profile_id', e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg bg-white"
+                    >
+                      <option value="">-- Select shipping profile --</option>
+                      {shippingProfiles.map(p => (
+                        <option key={p.shipping_profile_id} value={p.shipping_profile_id}>
+                          {p.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Return Policy</label>
+                    <select
+                      value={formData.return_policy_id}
+                      onChange={(e) => handleChange('return_policy_id', e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg bg-white"
+                    >
+                      <option value="">-- Select return policy --</option>
+                      {returnPolicies.map(p => (
+                        <option key={p.return_policy_id} value={p.return_policy_id}>
+                          {p.accepts_returns ? `Accepterar returer (${p.return_deadline} dagar)` : 'Inga returer'}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Shop Section */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Shop Section (optional)
+              </label>
+              <select
+                value={formData.shop_section_id}
+                onChange={(e) => handleChange('shop_section_id', e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+              >
+                <option value="">-- No section --</option>
+                {shopSections.map(s => (
+                  <option key={s.shop_section_id} value={s.shop_section_id}>
+                    {s.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Description Source */}
+            <div className="bg-purple-50 rounded-lg p-4">
+              <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-purple-600" />
+                Description Source
+              </h3>
+              <div className="space-y-2">
+                {DESCRIPTION_SOURCES.map(source => (
+                  <label 
+                    key={source.value}
+                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                      formData.description_source === source.value 
+                        ? 'border-purple-400 bg-purple-100' 
+                        : 'border-gray-200 bg-white hover:bg-gray-50'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="description_source"
+                      value={source.value}
+                      checked={formData.description_source === source.value}
+                      onChange={(e) => handleChange('description_source', e.target.value)}
+                      className="mt-1"
+                    />
+                    <div>
+                      <div className="font-medium text-gray-900">{source.label}</div>
+                      <div className="text-sm text-gray-500">{source.description}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+
+              {formData.description_source === 'template' && (
+                <div className="mt-3">
+                  <select
+                    value={formData.description_template_id || ''}
+                    onChange={(e) => handleChange('description_template_id', parseInt(e.target.value) || null)}
+                    className="w-full px-3 py-2 border rounded-lg bg-white"
+                  >
+                    <option value="">-- Select template --</option>
+                    {descriptionTemplates.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {formData.description_source === 'manual' && (
+                <div className="mt-3">
+                  <textarea
+                    value={formData.manual_description}
+                    onChange={(e) => handleChange('manual_description', e.target.value)}
+                    placeholder="Write your fixed description here..."
+                    rows={4}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Default Tags */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Default Tags (press Enter to add, max 13)
+              </label>
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleAddTag}
+                placeholder="Type a tag..."
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+              {formData.default_tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {formData.default_tags.map(tag => (
+                    <span 
+                      key={tag}
+                      className="px-2 py-1 bg-brand-primary/10 text-brand-primary rounded-full text-sm flex items-center gap-1"
+                    >
+                      {tag}
+                      <button 
+                        onClick={() => handleRemoveTag(tag)}
+                        className="hover:text-red-500"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Advanced Section */}
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+            >
+              {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              Advanced Settings
+            </button>
+
+            {showAdvanced && (
+              <div className="space-y-4 pt-4 border-t">
+                {/* Personalization */}
+                <div className="bg-yellow-50 rounded-lg p-4">
+                  <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-yellow-600" />
+                    Personalization
+                  </h3>
+                  <label className="flex items-center gap-2 cursor-pointer mb-3">
+                    <input
+                      type="checkbox"
+                      checked={formData.is_personalizable}
+                      onChange={(e) => handleChange('is_personalizable', e.target.checked)}
+                      className="w-4 h-4 rounded text-brand-primary"
+                    />
+                    <span className="text-sm text-gray-700">This product can be personalized</span>
+                  </label>
+                  
+                  {formData.is_personalizable && (
+                    <div className="space-y-3 mt-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.personalization_is_required}
+                          onChange={(e) => handleChange('personalization_is_required', e.target.checked)}
+                          className="w-4 h-4 rounded"
+                        />
+                        <span className="text-sm text-gray-600">Personalization required</span>
+                      </label>
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">Max characters</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="1000"
+                          value={formData.personalization_char_count_max}
+                          onChange={(e) => handleChange('personalization_char_count_max', parseInt(e.target.value))}
+                          className="w-32 px-3 py-2 border rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">Instructions to buyer</label>
+                        <textarea
+                          value={formData.personalization_instructions}
+                          onChange={(e) => handleChange('personalization_instructions', e.target.value)}
+                          placeholder="e.g. Enter desired name"
+                          rows={2}
+                          className="w-full px-3 py-2 border rounded-lg"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Physical dimensions */}
+                {isPhysical && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="font-medium text-gray-900 mb-3">Physical Dimensions</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">Weight</label>
+                        <div className="flex gap-1">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            value={formData.item_weight || ''}
+                            onChange={(e) => handleChange('item_weight', parseFloat(e.target.value) || null)}
+                            className="w-full px-2 py-2 border rounded-lg"
+                          />
+                          <select
+                            value={formData.item_weight_unit}
+                            onChange={(e) => handleChange('item_weight_unit', e.target.value)}
+                            className="px-2 py-2 border rounded-lg"
+                          >
+                            {WEIGHT_UNITS.map(u => (
+                              <option key={u.value} value={u.value}>{u.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">Length</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={formData.item_length || ''}
+                          onChange={(e) => handleChange('item_length', parseFloat(e.target.value) || null)}
+                          className="w-full px-2 py-2 border rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">Width</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={formData.item_width || ''}
+                          onChange={(e) => handleChange('item_width', parseFloat(e.target.value) || null)}
+                          className="w-full px-2 py-2 border rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">Height</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={formData.item_height || ''}
+                          onChange={(e) => handleChange('item_height', parseFloat(e.target.value) || null)}
+                          className="w-full px-2 py-2 border rounded-lg"
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <select
+                        value={formData.item_dimensions_unit}
+                        onChange={(e) => handleChange('item_dimensions_unit', e.target.value)}
+                        className="px-3 py-2 border rounded-lg"
+                      >
+                        {DIMENSION_UNITS.map(u => (
+                          <option key={u.value} value={u.value}>{u.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Materials */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Materials (press Enter to add)
+                  </label>
+                  <input
+                    type="text"
+                    value={materialInput}
+                    onChange={(e) => setMaterialInput(e.target.value)}
+                    onKeyDown={handleAddMaterial}
+                    placeholder="e.g. Canvas, Ink"
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                  {formData.materials.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {formData.materials.map(mat => (
+                        <span 
+                          key={mat}
+                          className="px-2 py-1 bg-gray-200 text-gray-700 rounded-full text-sm flex items-center gap-1"
+                        >
+                          {mat}
+                          <button 
+                            onClick={() => handleRemoveMaterial(mat)}
+                            className="hover:text-red-500"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end gap-3 p-4 border-t bg-gray-50">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2 px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 disabled:opacity-50"
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            {saving ? 'Saving...' : 'Save Preset'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
