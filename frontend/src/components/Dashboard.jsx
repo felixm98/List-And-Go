@@ -134,7 +134,7 @@ function Dashboard({ uploads }) {
                       href={upload.etsyUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 text-gray-400 hover:text-etsy-orange transition-colors"
+                      className="p-2 text-gray-400 hover:text-brand-primary transition-colors"
                     >
                       <ExternalLink className="w-4 h-4" />
                     </a>

@@ -202,8 +202,8 @@ function DropZone({ onFilesProcessed, isProcessing, setIsProcessing, showPreProc
         relative border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer
         transition-all duration-300 ease-out
         ${isDragActive 
-          ? 'border-etsy-orange bg-etsy-light scale-[1.02] shadow-lg' 
-          : 'border-gray-300 hover:border-etsy-orange hover:bg-orange-50'
+          ? 'border-brand-primary bg-brand-light scale-[1.02] shadow-lg' 
+          : 'border-gray-300 hover:border-brand-primary hover:bg-rose-50'
         }
         ${isProcessing ? 'pointer-events-none opacity-60' : ''}
       `}
@@ -212,7 +212,7 @@ function DropZone({ onFilesProcessed, isProcessing, setIsProcessing, showPreProc
       
       {isProcessing ? (
         <div className="flex flex-col items-center">
-          <Loader2 className="w-16 h-16 text-etsy-orange animate-spin mb-4" />
+          <Loader2 className="w-16 h-16 text-brand-primary animate-spin mb-4" />
           <h3 className="text-xl font-semibold text-gray-700 mb-2">
             Analyzing mockups with AI...
           </h3>
@@ -225,7 +225,7 @@ function DropZone({ onFilesProcessed, isProcessing, setIsProcessing, showPreProc
           <div className={`
             flex items-center justify-center w-20 h-20 mx-auto mb-6 rounded-full
             transition-all duration-300
-            ${isDragActive ? 'bg-etsy-orange text-white scale-110' : 'bg-gray-100 text-gray-400'}
+            ${isDragActive ? 'bg-brand-primary text-white scale-110' : 'bg-gray-100 text-gray-400'}
           `}>
             {isDragActive ? (
               <FolderOpen className="w-10 h-10" />
@@ -239,7 +239,7 @@ function DropZone({ onFilesProcessed, isProcessing, setIsProcessing, showPreProc
           </h3>
           
           <p className="text-gray-500 mb-4">
-            or <span className="text-etsy-orange font-medium">click to select folders</span>
+            or <span className="text-brand-primary font-medium">click to select folders</span>
           </p>
           
           <div className="flex items-center justify-center gap-6 text-sm text-gray-400">

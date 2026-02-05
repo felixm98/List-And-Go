@@ -176,7 +176,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-etsy-orange" />
+        <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
       </div>
     )
   }
@@ -185,7 +185,7 @@ export default function SettingsPage() {
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <Settings className="w-8 h-8 text-etsy-orange" />
+          <Settings className="w-8 h-8 text-brand-primary" />
           Settings
         </h1>
         <p className="text-gray-600 mt-2">
@@ -211,8 +211,8 @@ export default function SettingsPage() {
       <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-etsy-orange/10 rounded-lg flex items-center justify-center">
-              <Store className="w-5 h-5 text-etsy-orange" />
+            <div className="w-10 h-10 bg-brand-primary/10 rounded-lg flex items-center justify-center">
+              <Store className="w-5 h-5 text-brand-primary" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Etsy Account</h2>
@@ -293,7 +293,7 @@ export default function SettingsPage() {
               step="0.01"
               value={settings.default_price}
               onChange={(e) => setSettings(prev => ({ ...prev, default_price: parseFloat(e.target.value) }))}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-etsy-orange/50 focus:border-etsy-orange"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary"
             />
           </div>
 
@@ -306,7 +306,7 @@ export default function SettingsPage() {
               min="1"
               value={settings.default_quantity}
               onChange={(e) => setSettings(prev => ({ ...prev, default_quantity: parseInt(e.target.value) }))}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-etsy-orange/50 focus:border-etsy-orange"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary"
             />
           </div>
 
@@ -316,7 +316,7 @@ export default function SettingsPage() {
                 type="checkbox"
                 checked={settings.auto_renew}
                 onChange={(e) => setSettings(prev => ({ ...prev, auto_renew: e.target.checked }))}
-                className="w-5 h-5 rounded border-gray-300 text-etsy-orange focus:ring-etsy-orange"
+                className="w-5 h-5 rounded border-gray-300 text-brand-primary focus:ring-brand-primary"
               />
               <span className="text-sm font-medium text-gray-700">
                 Auto-renew listings
@@ -330,8 +330,8 @@ export default function SettingsPage() {
       <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-etsy-orange/10 rounded-lg flex items-center justify-center">
-              <Package className="w-5 h-5 text-etsy-orange" />
+            <div className="w-10 h-10 bg-brand-primary/10 rounded-lg flex items-center justify-center">
+              <Package className="w-5 h-5 text-brand-primary" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Listing Presets</h2>
@@ -340,7 +340,7 @@ export default function SettingsPage() {
           </div>
           <button
             onClick={handleCreatePreset}
-            className="flex items-center gap-2 px-4 py-2 bg-etsy-orange text-white rounded-lg hover:bg-etsy-orange/90 transition-colors text-sm font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors text-sm font-medium"
           >
             <Plus className="w-4 h-4" />
             New Preset
@@ -385,7 +385,7 @@ export default function SettingsPage() {
                   </button>
                   <button
                     onClick={() => handleEditPreset(preset)}
-                    className="p-2 text-gray-400 hover:text-etsy-orange hover:bg-etsy-orange/10 rounded-lg transition-colors"
+                    className="p-2 text-gray-400 hover:text-brand-primary hover:bg-brand-primary/10 rounded-lg transition-colors"
                     title="Edit"
                   >
                     <Pencil className="w-4 h-4" />
@@ -473,7 +473,7 @@ export default function SettingsPage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-2 px-6 py-3 bg-etsy-orange text-white rounded-lg hover:bg-etsy-orange/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+          className="flex items-center gap-2 px-6 py-3 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
         >
           {saving ? (
             <Loader2 className="w-5 h-5 animate-spin" />

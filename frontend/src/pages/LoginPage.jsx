@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Store, Loader2, AlertCircle, ChevronDown, ChevronUp, Upload, Sparkles, Clock, CheckCircle, Eye } from 'lucide-react'
+import { Store, Loader2, AlertCircle, ChevronDown, ChevronUp, Upload, Sparkles, Clock, CheckCircle, Eye, Rocket } from 'lucide-react'
 import { api } from '../services/api'
 
 export default function LoginPage({ onEnterDemo }) {
@@ -68,15 +68,15 @@ export default function LoginPage({ onEnterDemo }) {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-rose-100">
       <div className="container mx-auto px-4 py-8 flex flex-col items-center">
         
         {/* Main Login Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mb-8">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-etsy-orange rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <Store className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 bg-gradient-to-br from-brand-primary to-brand-dark rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <Rocket className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               List-And-Go
@@ -98,7 +98,7 @@ export default function LoginPage({ onEnterDemo }) {
           <button
             onClick={handleLoginWithEtsy}
             disabled={loading}
-            className="w-full py-4 bg-etsy-orange hover:bg-orange-600 text-white rounded-xl font-semibold text-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-4 bg-brand-primary hover:bg-brand-dark text-white rounded-xl font-semibold text-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>
@@ -149,8 +149,8 @@ export default function LoginPage({ onEnterDemo }) {
             className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-etsy-orange" />
+              <div className="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-brand-primary" />
               </div>
               <span className="text-lg font-semibold text-gray-900">How does it work?</span>
             </div>
@@ -172,12 +172,12 @@ export default function LoginPage({ onEnterDemo }) {
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm ${
                         index === steps.length - 1 
                           ? 'bg-green-100 text-green-600' 
-                          : 'bg-orange-50 text-etsy-orange'
+                          : 'bg-rose-50 text-brand-primary'
                       }`}>
                         <step.icon className="w-6 h-6" />
                       </div>
                       {index < steps.length - 1 && (
-                        <div className="absolute left-1/2 top-12 w-0.5 h-4 bg-orange-200 -translate-x-1/2"></div>
+                        <div className="absolute left-1/2 top-12 w-0.5 h-4 bg-rose-200 -translate-x-1/2"></div>
                       )}
                     </div>
                     <div className="flex-1 pt-1">

@@ -27,7 +27,7 @@ export default function PresetPreviewModal({ preset, onClose, onEdit }) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-etsy-orange to-orange-500">
+        <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-brand-primary to-brand-dark">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Package className="w-6 h-6" />
             {preset.name}
@@ -175,7 +175,7 @@ export default function PresetPreviewModal({ preset, onClose, onEdit }) {
                   {preset.default_tags.map(tag => (
                     <span 
                       key={tag}
-                      className="px-2 py-1 bg-etsy-orange/10 text-etsy-orange rounded-full text-xs"
+                      className="px-2 py-1 bg-brand-primary/10 text-brand-primary rounded-full text-xs"
                     >
                       {tag}
                     </span>
@@ -208,7 +208,7 @@ export default function PresetPreviewModal({ preset, onClose, onEdit }) {
                 onClose()
                 onEdit(preset)
               }}
-              className="px-4 py-2 bg-etsy-orange text-white rounded-lg hover:bg-etsy-orange/90"
+              className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90"
             >
               Edit preset
             </button>

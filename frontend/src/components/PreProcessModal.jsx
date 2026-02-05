@@ -167,8 +167,8 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-etsy-light rounded-full flex items-center justify-center">
-              <Settings className="w-5 h-5 text-etsy-orange" />
+            <div className="w-10 h-10 bg-brand-light rounded-full flex items-center justify-center">
+              <Settings className="w-5 h-5 text-brand-primary" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-800">Default Settings</h2>
@@ -188,7 +188,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
           {/* Loading State */}
           {isLoading && (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 text-etsy-orange animate-spin" />
+              <Loader2 className="w-6 h-6 text-brand-primary animate-spin" />
               <span className="ml-2 text-gray-600">Fetching data from Etsy...</span>
             </div>
           )}
@@ -213,9 +213,9 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
 
           {/* Preset Selector - NEW */}
           {!isLoading && presets.length > 0 && (
-            <div className="bg-gradient-to-r from-etsy-orange/5 to-orange-50 rounded-xl p-4 border border-etsy-orange/20">
+            <div className="bg-gradient-to-r from-brand-primary/5 to-rose-50 rounded-xl p-4 border border-brand-primary/20">
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <Package className="w-4 h-4 text-etsy-orange" />
+                <Package className="w-4 h-4 text-brand-primary" />
                 Choose a saved preset
                 <span className="text-xs text-gray-400 ml-auto">(Optional)</span>
               </label>
@@ -245,7 +245,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                       setSettings(s => ({ ...s, selectedPresetId: null }))
                     }
                   }}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent"
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
                 >
                   <option value="">-- No preset (manual settings) --</option>
                   {presets.map(preset => (
@@ -286,7 +286,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                   onClick={() => setSettings(s => ({ ...s, descriptionSource: 'ai' }))}
                   className={`p-3 rounded-lg border-2 text-center transition-all ${
                     settings.descriptionSource === 'ai'
-                      ? 'border-etsy-orange bg-etsy-orange/5 text-etsy-orange'
+                      ? 'border-brand-primary bg-brand-primary/5 text-brand-primary'
                       : 'border-gray-200 hover:border-gray-300 text-gray-600'
                   }`}
                 >
@@ -360,7 +360,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
               value={settings.quantity}
               onChange={(e) => setSettings(s => ({ ...s, quantity: e.target.value }))}
               placeholder="e.g. 10"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             />
             <p className="text-xs text-gray-400 mt-1">How many items are available for sale</p>
           </div>
@@ -375,7 +375,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
               value={settings.materials}
               onChange={(e) => setSettings(s => ({ ...s, materials: e.target.value }))}
               placeholder="e.g. cotton, polyester, wood"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             />
             <p className="text-xs text-gray-400 mt-1">Enter materials, separated by commas</p>
           </div>
@@ -392,14 +392,14 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                 value={settings.shippingCost}
                 onChange={(e) => setSettings(s => ({ ...s, shippingCost: e.target.value }))}
                 placeholder="Shipping cost (USD)"
-                className="w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent"
+                className="w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
               />
               <input
                 type="text"
                 value={settings.shippingTime}
                 onChange={(e) => setSettings(s => ({ ...s, shippingTime: e.target.value }))}
                 placeholder="Delivery time (e.g. 1-3 days)"
-                className="w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent"
+                className="w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
               />
             </div>
             <p className="text-xs text-gray-400">Leave empty to use default profile</p>
@@ -416,7 +416,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
               value={settings.defaultPrice}
               onChange={(e) => setSettings(s => ({ ...s, defaultPrice: e.target.value }))}
               placeholder="e.g. 49"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             />
             <p className="text-xs text-gray-400 mt-1">Leave empty to set per product</p>
           </div>
@@ -439,7 +439,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                 }))
               }}
               disabled={isLoading}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent disabled:bg-gray-100"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent disabled:bg-gray-100"
             >
               {categories.map(cat => (
                 <option key={cat.id} value={cat.name}>{cat.name}</option>
@@ -467,7 +467,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                 }))
               }}
               disabled={isLoading}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent disabled:bg-gray-100"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent disabled:bg-gray-100"
             >
               {shippingProfiles.map(profile => (
                 <option key={profile.shipping_profile_id} value={profile.title || profile.shipping_profile_id}>
@@ -497,7 +497,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                 }))
               }}
               disabled={isLoading}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent disabled:bg-gray-100"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent disabled:bg-gray-100"
             >
               {returnPolicies.map(policy => (
                 <option key={policy.return_policy_id} value={policy.label || policy.return_policy_id}>
@@ -514,7 +514,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                 type="checkbox"
                 checked={settings.saveAsTemplate}
                 onChange={(e) => setSettings(s => ({ ...s, saveAsTemplate: e.target.checked }))}
-                className="w-5 h-5 text-etsy-orange rounded focus:ring-etsy-orange"
+                className="w-5 h-5 text-brand-primary rounded focus:ring-brand-primary"
               />
               <span className="text-sm font-medium text-gray-700">Save as template for future uploads</span>
             </label>
@@ -525,7 +525,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                 value={settings.templateName}
                 onChange={(e) => setSettings(s => ({ ...s, templateName: e.target.value }))}
                 placeholder="Template name, e.g. 'Mockup Standard'"
-                className="w-full mt-3 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent"
+                className="w-full mt-3 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
               />
             )}
           </div>
@@ -541,7 +541,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
           </button>
           <button
             onClick={handleConfirm}
-            className="flex-1 px-4 py-3 bg-etsy-orange text-white rounded-lg font-medium hover:bg-etsy-orange-dark transition-colors"
+            className="flex-1 px-4 py-3 bg-brand-primary text-white rounded-lg font-medium hover:bg-brand-dark transition-colors"
           >
             Apply & Continue
           </button>

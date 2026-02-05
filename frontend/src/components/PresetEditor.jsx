@@ -386,7 +386,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-etsy-orange to-orange-500">
+        <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-brand-primary to-brand-dark">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Package className="w-6 h-6" />
             {preset ? 'Edit Preset' : 'Create New Preset'}
@@ -417,7 +417,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                   value={formData.name}
                   onChange={(e) => handleChange('name', e.target.value)}
                   placeholder="e.g. Digital Wall Art"
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-etsy-orange/50"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-primary/50"
                 />
               </div>
               <div>
@@ -427,7 +427,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                 <select
                   value={formData.listing_type}
                   onChange={(e) => handleChange('listing_type', e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-etsy-orange/50"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-primary/50"
                 >
                   {LISTING_TYPE_OPTIONS.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -749,7 +749,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                     type="checkbox"
                     checked={formData.is_supply}
                     onChange={(e) => handleChange('is_supply', e.target.checked)}
-                    className="w-4 h-4 rounded text-etsy-orange"
+                    className="w-4 h-4 rounded text-brand-primary"
                   />
                   <span className="text-sm text-gray-600">This is a craft supply/tool</span>
                 </label>
@@ -758,7 +758,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                     type="checkbox"
                     checked={formData.should_auto_renew}
                     onChange={(e) => handleChange('should_auto_renew', e.target.checked)}
-                    className="w-4 h-4 rounded text-etsy-orange"
+                    className="w-4 h-4 rounded text-brand-primary"
                   />
                   <span className="text-sm text-gray-600">Auto-renew</span>
                 </label>
@@ -767,7 +767,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                     type="checkbox"
                     checked={formData.is_taxable}
                     onChange={(e) => handleChange('is_taxable', e.target.checked)}
-                    className="w-4 h-4 rounded text-etsy-orange"
+                    className="w-4 h-4 rounded text-brand-primary"
                   />
                   <span className="text-sm text-gray-600">Taxable</span>
                 </label>
@@ -776,7 +776,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                     type="checkbox"
                     checked={formData.is_customizable}
                     onChange={(e) => handleChange('is_customizable', e.target.checked)}
-                    className="w-4 h-4 rounded text-etsy-orange"
+                    className="w-4 h-4 rounded text-brand-primary"
                   />
                   <span className="text-sm text-gray-600">Can be customized</span>
                 </label>
@@ -922,7 +922,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                   {formData.default_tags.map(tag => (
                     <span 
                       key={tag}
-                      className="px-2 py-1 bg-etsy-orange/10 text-etsy-orange rounded-full text-sm flex items-center gap-1"
+                      className="px-2 py-1 bg-brand-primary/10 text-brand-primary rounded-full text-sm flex items-center gap-1"
                     >
                       {tag}
                       <button 
@@ -960,7 +960,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                       type="checkbox"
                       checked={formData.is_personalizable}
                       onChange={(e) => handleChange('is_personalizable', e.target.checked)}
-                      className="w-4 h-4 rounded text-etsy-orange"
+                      className="w-4 h-4 rounded text-brand-primary"
                     />
                     <span className="text-sm text-gray-700">This product can be personalized</span>
                   </label>
@@ -1124,7 +1124,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-2 bg-etsy-orange text-white rounded-lg hover:bg-etsy-orange/90 disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 disabled:opacity-50"
           >
             {saving ? (
               <Loader2 className="w-4 h-4 animate-spin" />

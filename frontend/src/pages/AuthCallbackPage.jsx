@@ -30,9 +30,9 @@ export default function AuthCallbackPage() {
   }, [navigate])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 to-rose-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-        <Loader2 className="w-12 h-12 text-etsy-orange animate-spin mx-auto mb-4" />
+        <Loader2 className="w-12 h-12 text-brand-primary animate-spin mx-auto mb-4" />
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
           Logging in...
         </h2>

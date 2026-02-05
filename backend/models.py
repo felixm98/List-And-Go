@@ -462,3 +462,89 @@ class ListingPreset(db.Model):
         
         return data
 
+
+class EtsyListing(db.Model):
+    """Cache of Etsy shop listings for Listing Manager"""
+    __tablename__ = 'etsy_listings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    etsy_listing_id = db.Column(db.String(50), nullable=False, index=True)
+    
+    # Cached data from Etsy
+    title = db.Column(db.String(140))
+    description = db.Column(db.Text)
+    tags = db.Column(db.JSON)  # Array of tags
+    state = db.Column(db.String(20), index=True)  # active, draft, expired, inactive, sold_out
+    sku = db.Column(db.String(50))
+    
+    # Pricing
+    price_amount = db.Column(db.Integer)  # Price in cents
+    price_divisor = db.Column(db.Integer, default=100)
+    currency_code = db.Column(db.String(3), default='USD')
+    
+    # Quantity and stats
+    quantity = db.Column(db.Integer)
+    num_favorers = db.Column(db.Integer, default=0)
+    views = db.Column(db.Integer, default=0)
+    
+    # URLs
+    url = db.Column(db.String(500))
+    
+    # Images cached as JSON array
+    # Each image: {listing_image_id, url_75x75, url_170x170, url_570xN, url_fullxfull, rank}
+    images = db.Column(db.JSON)
+    
+    # Files for digital downloads
+    files_count = db.Column(db.Integer, default=0)
+    
+    # Taxonomy
+    taxonomy_id = db.Column(db.Integer)
+    
+    # Shop section
+    shop_section_id = db.Column(db.String(50))
+    
+    # Etsy timestamps
+    created_timestamp = db.Column(db.DateTime)
+    last_modified_timestamp = db.Column(db.DateTime)
+    ending_timestamp = db.Column(db.DateTime)  # For expiring listings
+    
+    # Our cache timestamp
+    synced_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Unique constraint on user + etsy_listing_id
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'etsy_listing_id', name='unique_user_listing'),
+    )
+    
+    def to_dict(self):
+        # Calculate price from amount/divisor
+        price = None
+        if self.price_amount is not None and self.price_divisor:
+            price = self.price_amount / self.price_divisor
+        
+        return {
+            'id': self.id,
+            'etsy_listing_id': self.etsy_listing_id,
+            'title': self.title,
+            'description': self.description,
+            'tags': self.tags or [],
+            'state': self.state,
+            'sku': self.sku,
+            'price': price,
+            'currency_code': self.currency_code,
+            'quantity': self.quantity,
+            'num_favorers': self.num_favorers,
+            'views': self.views,
+            'url': self.url,
+            'images': self.images or [],
+            'files_count': self.files_count,
+            'taxonomy_id': self.taxonomy_id,
+            'shop_section_id': self.shop_section_id,
+            'created_timestamp': self.created_timestamp.isoformat() if self.created_timestamp else None,
+            'last_modified_timestamp': self.last_modified_timestamp.isoformat() if self.last_modified_timestamp else None,
+            'ending_timestamp': self.ending_timestamp.isoformat() if self.ending_timestamp else None,
+            'synced_at': self.synced_at.isoformat() if self.synced_at else None
+        }
+
+

@@ -13,7 +13,7 @@ from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
 from sqlalchemy import inspect, text
 
 from config import config
-from models import db, User, Template, Upload, Listing, EtsyToken, ListingPreset, DescriptionTemplate
+from models import db, User, Template, Upload, Listing, EtsyToken, ListingPreset, DescriptionTemplate, EtsyListing
 from auth import auth_bp, get_or_create_user_from_etsy, create_tokens_for_user
 from settings import settings_bp
 from ai_generator import generate_listing_content, regenerate_field, encode_image_bytes_to_base64
@@ -23,7 +23,9 @@ from etsy_api import (
     get_shop_info, get_shipping_profiles, get_return_policies, get_shop_sections,
     create_draft_listing, upload_listing_image, upload_listing_video, publish_listing,
     encrypt_token, decrypt_token, get_taxonomy_nodes, get_taxonomy_properties,
-    update_listing_property, get_listing_properties, set_listing_attributes_from_ai
+    update_listing_property, get_listing_properties, set_listing_attributes_from_ai,
+    get_shop_listings, get_all_shop_listings, get_listing, get_listing_images,
+    delete_listing_image, update_listing
 )
 from scheduler import init_scheduler, schedule_publish, cancel_scheduled_publish, shutdown_scheduler
 
@@ -1178,6 +1180,521 @@ def delete_upload(upload_id):
     db.session.commit()
     
     return jsonify({'message': 'Upload deleted'})
+
+
+# ============== Listing Manager Routes ==============
+
+def get_user_etsy_credentials(user_id):
+    """Helper to get user's Etsy token and shop ID"""
+    etsy_token = EtsyToken.query.filter_by(user_id=user_id).first()
+    if not etsy_token:
+        return None, None, 'Etsy account not connected'
+    
+    # Check if token is expired and refresh if needed
+    if etsy_token.expires_at and etsy_token.expires_at < datetime.utcnow():
+        try:
+            refresh_token = decrypt_token(etsy_token.refresh_token_encrypted)
+            new_tokens = refresh_access_token(refresh_token)
+            
+            etsy_token.access_token_encrypted = encrypt_token(new_tokens['access_token'])
+            etsy_token.refresh_token_encrypted = encrypt_token(new_tokens['refresh_token'])
+            etsy_token.expires_at = datetime.utcnow() + timedelta(seconds=new_tokens['expires_in'])
+            db.session.commit()
+        except Exception as e:
+            return None, None, f'Token refresh failed: {str(e)}'
+    
+    access_token = decrypt_token(etsy_token.access_token_encrypted)
+    shop_id = etsy_token.shop_id
+    
+    return access_token, shop_id, None
+
+
+@app.route('/api/shop/sync', methods=['POST'])
+@jwt_required()
+def sync_shop_listings():
+    """Sync listings from Etsy to local cache"""
+    user_id = get_jwt_identity()
+    access_token, shop_id, error = get_user_etsy_credentials(user_id)
+    
+    if error:
+        return jsonify({'error': error}), 401
+    
+    try:
+        # Get states to sync (default: all states)
+        data = request.get_json() or {}
+        states_to_sync = data.get('states', ['active', 'draft', 'expired', 'inactive', 'sold_out'])
+        
+        synced_count = 0
+        
+        for state in states_to_sync:
+            try:
+                listings = get_all_shop_listings(
+                    access_token, shop_id, state, 
+                    includes=['Images']
+                )
+                
+                for etsy_listing in listings:
+                    listing_id = str(etsy_listing.get('listing_id'))
+                    
+                    # Find or create local cache entry
+                    cached = EtsyListing.query.filter_by(
+                        user_id=user_id, 
+                        etsy_listing_id=listing_id
+                    ).first()
+                    
+                    if not cached:
+                        cached = EtsyListing(
+                            user_id=user_id,
+                            etsy_listing_id=listing_id
+                        )
+                        db.session.add(cached)
+                    
+                    # Update cached data
+                    cached.title = etsy_listing.get('title')
+                    cached.description = etsy_listing.get('description')
+                    cached.tags = etsy_listing.get('tags', [])
+                    cached.state = etsy_listing.get('state')
+                    cached.sku = (etsy_listing.get('skus') or [None])[0]  # First SKU
+                    
+                    # Price
+                    price_obj = etsy_listing.get('price', {})
+                    cached.price_amount = price_obj.get('amount')
+                    cached.price_divisor = price_obj.get('divisor', 100)
+                    cached.currency_code = price_obj.get('currency_code', 'USD')
+                    
+                    # Quantity and stats
+                    cached.quantity = etsy_listing.get('quantity')
+                    cached.num_favorers = etsy_listing.get('num_favorers', 0)
+                    cached.views = etsy_listing.get('views', 0)
+                    
+                    # URLs
+                    cached.url = etsy_listing.get('url')
+                    
+                    # Images
+                    images = etsy_listing.get('images', [])
+                    cached.images = [{
+                        'listing_image_id': img.get('listing_image_id'),
+                        'url_75x75': img.get('url_75x75'),
+                        'url_170x170': img.get('url_170x170'),
+                        'url_570xN': img.get('url_570xN'),
+                        'url_fullxfull': img.get('url_fullxfull'),
+                        'rank': img.get('rank', 1)
+                    } for img in images]
+                    
+                    # Taxonomy
+                    cached.taxonomy_id = etsy_listing.get('taxonomy_id')
+                    cached.shop_section_id = str(etsy_listing.get('shop_section_id')) if etsy_listing.get('shop_section_id') else None
+                    
+                    # Timestamps
+                    if etsy_listing.get('created_timestamp'):
+                        cached.created_timestamp = datetime.utcfromtimestamp(etsy_listing['created_timestamp'])
+                    if etsy_listing.get('last_modified_timestamp'):
+                        cached.last_modified_timestamp = datetime.utcfromtimestamp(etsy_listing['last_modified_timestamp'])
+                    if etsy_listing.get('ending_timestamp'):
+                        cached.ending_timestamp = datetime.utcfromtimestamp(etsy_listing['ending_timestamp'])
+                    
+                    cached.synced_at = datetime.utcnow()
+                    synced_count += 1
+                    
+            except Exception as e:
+                print(f"Error syncing {state} listings: {e}")
+                continue
+        
+        db.session.commit()
+        
+        # Get counts by state
+        state_counts = {}
+        for state in ['active', 'draft', 'expired', 'inactive', 'sold_out']:
+            count = EtsyListing.query.filter_by(user_id=user_id, state=state).count()
+            state_counts[state] = count
+        
+        return jsonify({
+            'message': f'Synced {synced_count} listings',
+            'synced_count': synced_count,
+            'state_counts': state_counts,
+            'synced_at': datetime.utcnow().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/shop/listings', methods=['GET'])
+@jwt_required()
+def get_cached_listings():
+    """Get cached listings with pagination and filtering"""
+    user_id = get_jwt_identity()
+    
+    # Query parameters
+    state = request.args.get('state', 'active')
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 25))
+    search = request.args.get('search', '')
+    sort_by = request.args.get('sort_by', 'last_modified_timestamp')
+    sort_order = request.args.get('sort_order', 'desc')
+    
+    # Base query
+    query = EtsyListing.query.filter_by(user_id=user_id, state=state)
+    
+    # Search filter
+    if search:
+        query = query.filter(EtsyListing.title.ilike(f'%{search}%'))
+    
+    # Sorting
+    sort_column = getattr(EtsyListing, sort_by, EtsyListing.last_modified_timestamp)
+    if sort_order == 'desc':
+        query = query.order_by(sort_column.desc())
+    else:
+        query = query.order_by(sort_column.asc())
+    
+    # Pagination
+    total = query.count()
+    listings = query.offset((page - 1) * per_page).limit(per_page).all()
+    
+    # Get counts by state
+    state_counts = {}
+    for s in ['active', 'draft', 'expired', 'inactive', 'sold_out']:
+        state_counts[s] = EtsyListing.query.filter_by(user_id=user_id, state=s).count()
+    
+    return jsonify({
+        'listings': [l.to_dict() for l in listings],
+        'total': total,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': (total + per_page - 1) // per_page,
+        'state_counts': state_counts
+    })
+
+
+@app.route('/api/shop/listings/<listing_id>', methods=['GET'])
+@jwt_required()
+def get_single_listing(listing_id):
+    """Get a single listing with full details from Etsy"""
+    user_id = get_jwt_identity()
+    access_token, shop_id, error = get_user_etsy_credentials(user_id)
+    
+    if error:
+        return jsonify({'error': error}), 401
+    
+    try:
+        # Get fresh data from Etsy
+        listing_data = get_listing(access_token, listing_id, includes=['Images'])
+        images = get_listing_images(access_token, listing_id)
+        
+        listing_data['images'] = images
+        
+        return jsonify(listing_data)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/shop/listings/<listing_id>', methods=['PATCH'])
+@jwt_required()
+def update_shop_listing(listing_id):
+    """Update a single listing on Etsy"""
+    user_id = get_jwt_identity()
+    access_token, shop_id, error = get_user_etsy_credentials(user_id)
+    
+    if error:
+        return jsonify({'error': error}), 401
+    
+    try:
+        data = request.get_json()
+        
+        # Build update payload
+        update_data = {}
+        
+        if 'title' in data:
+            update_data['title'] = data['title'][:140]  # Max 140 chars
+        if 'description' in data:
+            update_data['description'] = data['description']
+        if 'tags' in data:
+            # Ensure tags is a list of max 13 items
+            tags = data['tags']
+            if isinstance(tags, str):
+                tags = [t.strip() for t in tags.split(',') if t.strip()]
+            update_data['tags'] = tags[:13]
+        if 'price' in data:
+            update_data['price'] = float(data['price'])
+        if 'quantity' in data:
+            update_data['quantity'] = int(data['quantity'])
+        
+        # Call Etsy API to update
+        result = update_listing(access_token, shop_id, listing_id, update_data)
+        
+        # Update local cache
+        cached = EtsyListing.query.filter_by(
+            user_id=user_id, 
+            etsy_listing_id=listing_id
+        ).first()
+        
+        if cached:
+            if 'title' in update_data:
+                cached.title = update_data['title']
+            if 'description' in update_data:
+                cached.description = update_data['description']
+            if 'tags' in update_data:
+                cached.tags = update_data['tags']
+            if 'price' in update_data:
+                cached.price_amount = int(update_data['price'] * 100)
+            if 'quantity' in update_data:
+                cached.quantity = update_data['quantity']
+            cached.synced_at = datetime.utcnow()
+            db.session.commit()
+        
+        return jsonify({
+            'message': 'Listing updated',
+            'listing': result
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/shop/listings/bulk', methods=['PATCH'])
+@jwt_required()
+def bulk_update_listings():
+    """Bulk update multiple listings"""
+    user_id = get_jwt_identity()
+    access_token, shop_id, error = get_user_etsy_credentials(user_id)
+    
+    if error:
+        return jsonify({'error': error}), 401
+    
+    try:
+        data = request.get_json()
+        listing_ids = data.get('listing_ids', [])
+        updates = data.get('updates', {})
+        
+        if not listing_ids:
+            return jsonify({'error': 'No listing IDs provided'}), 400
+        
+        results = {
+            'success': [],
+            'failed': []
+        }
+        
+        for listing_id in listing_ids:
+            try:
+                # Get the specific update for this listing (if per-listing updates provided)
+                listing_update = updates.get(str(listing_id), updates.get('_all', updates))
+                
+                if not listing_update:
+                    continue
+                
+                # Build update payload
+                update_data = {}
+                
+                if 'title' in listing_update:
+                    update_data['title'] = listing_update['title'][:140]
+                if 'description' in listing_update:
+                    update_data['description'] = listing_update['description']
+                if 'tags' in listing_update:
+                    tags = listing_update['tags']
+                    if isinstance(tags, str):
+                        tags = [t.strip() for t in tags.split(',') if t.strip()]
+                    update_data['tags'] = tags[:13]
+                
+                if update_data:
+                    result = update_listing(access_token, shop_id, str(listing_id), update_data)
+                    results['success'].append({
+                        'listing_id': listing_id,
+                        'updates': update_data
+                    })
+                    
+                    # Update cache
+                    cached = EtsyListing.query.filter_by(
+                        user_id=user_id, 
+                        etsy_listing_id=str(listing_id)
+                    ).first()
+                    
+                    if cached:
+                        if 'title' in update_data:
+                            cached.title = update_data['title']
+                        if 'description' in update_data:
+                            cached.description = update_data['description']
+                        if 'tags' in update_data:
+                            cached.tags = update_data['tags']
+                        cached.synced_at = datetime.utcnow()
+                        
+            except Exception as e:
+                results['failed'].append({
+                    'listing_id': listing_id,
+                    'error': str(e)
+                })
+        
+        db.session.commit()
+        
+        return jsonify({
+            'message': f"Updated {len(results['success'])} listings, {len(results['failed'])} failed",
+            'results': results
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/shop/listings/<listing_id>/regenerate', methods=['POST'])
+@jwt_required()
+def regenerate_listing_content_route(listing_id):
+    """Regenerate AI content for an existing listing"""
+    user_id = get_jwt_identity()
+    access_token, shop_id, error = get_user_etsy_credentials(user_id)
+    
+    if error:
+        return jsonify({'error': error}), 401
+    
+    try:
+        data = request.get_json()
+        field = data.get('field', 'title')  # 'title', 'description', 'tags'
+        instruction = data.get('instruction', '')
+        image_rank = data.get('image_rank', 1)  # Which image to use for AI
+        
+        # Get listing images
+        images = get_listing_images(access_token, listing_id)
+        
+        if not images:
+            return jsonify({'error': 'Listing has no images for AI analysis'}), 400
+        
+        # Find image by rank or use first one
+        target_image = None
+        for img in images:
+            if img.get('rank') == image_rank:
+                target_image = img
+                break
+        
+        if not target_image:
+            target_image = images[0]
+        
+        # Get image URL and download for AI analysis
+        image_url = target_image.get('url_fullxfull') or target_image.get('url_570xN')
+        
+        if not image_url:
+            return jsonify({'error': 'Could not get image URL'}), 400
+        
+        # Download image
+        import requests as req
+        img_response = req.get(image_url)
+        if img_response.status_code != 200:
+            return jsonify({'error': 'Could not download image'}), 400
+        
+        image_base64 = encode_image_bytes_to_base64(img_response.content)
+        
+        # Regenerate using AI
+        result = regenerate_field(image_base64, field, instruction)
+        
+        return jsonify({
+            'field': field,
+            'value': result,
+            'image_used': image_rank
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/shop/listings/<listing_id>/images', methods=['POST'])
+@jwt_required()
+def upload_listing_image_route(listing_id):
+    """Upload a new image to a listing"""
+    user_id = get_jwt_identity()
+    access_token, shop_id, error = get_user_etsy_credentials(user_id)
+    
+    if error:
+        return jsonify({'error': error}), 401
+    
+    try:
+        if 'image' not in request.files:
+            return jsonify({'error': 'No image file provided'}), 400
+        
+        image_file = request.files['image']
+        rank = int(request.form.get('rank', 1))
+        
+        # Read image bytes
+        image_bytes = image_file.read()
+        
+        # Upload to Etsy
+        result = upload_listing_image(
+            access_token, shop_id, listing_id,
+            image_bytes, rank=rank
+        )
+        
+        return jsonify({
+            'message': 'Image uploaded',
+            'image': result
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/shop/listings/<listing_id>/images/<image_id>', methods=['DELETE'])
+@jwt_required()
+def delete_listing_image_route(listing_id, image_id):
+    """Delete an image from a listing"""
+    user_id = get_jwt_identity()
+    access_token, shop_id, error = get_user_etsy_credentials(user_id)
+    
+    if error:
+        return jsonify({'error': error}), 401
+    
+    try:
+        delete_listing_image(access_token, shop_id, listing_id, image_id)
+        
+        # Update local cache
+        cached = EtsyListing.query.filter_by(
+            user_id=user_id, 
+            etsy_listing_id=listing_id
+        ).first()
+        
+        if cached and cached.images:
+            cached.images = [img for img in cached.images if str(img.get('listing_image_id')) != str(image_id)]
+            cached.synced_at = datetime.utcnow()
+            db.session.commit()
+        
+        return jsonify({'message': 'Image deleted'})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/shop/listings/<listing_id>/images/reorder', methods=['PATCH'])
+@jwt_required()
+def reorder_listing_images_route(listing_id):
+    """
+    Reorder images for a listing.
+    Note: Etsy doesn't support direct reordering, so this requires delete + re-upload.
+    """
+    user_id = get_jwt_identity()
+    access_token, shop_id, error = get_user_etsy_credentials(user_id)
+    
+    if error:
+        return jsonify({'error': error}), 401
+    
+    try:
+        data = request.get_json()
+        new_order = data.get('image_ids', [])  # List of image IDs in new order
+        
+        if not new_order:
+            return jsonify({'error': 'No image order provided'}), 400
+        
+        # Get current images
+        current_images = get_listing_images(access_token, listing_id)
+        
+        # Unfortunately, Etsy doesn't support changing image rank directly.
+        # The client needs to handle this by downloading images, deleting, and re-uploading
+        # in the correct order. For now, we'll return info about the current state.
+        
+        return jsonify({
+            'message': 'Image reorder requires download and re-upload',
+            'current_images': current_images,
+            'requested_order': new_order,
+            'note': 'Client should download images, delete all, then re-upload in desired order'
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 # ============== Health Check ==============

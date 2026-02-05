@@ -63,12 +63,12 @@ function SchedulePicker({ isOpen, onClose, onConfirm, listingCount }) {
               className={`
                 p-4 rounded-xl border-2 text-left transition-all
                 ${scheduleType === 'now' 
-                  ? 'border-etsy-orange bg-etsy-light' 
+                  ? 'border-brand-primary bg-brand-light' 
                   : 'border-gray-200 hover:border-gray-300'
                 }
               `}
             >
-              <Zap className={`w-5 h-5 mb-2 ${scheduleType === 'now' ? 'text-etsy-orange' : 'text-gray-400'}`} />
+              <Zap className={`w-5 h-5 mb-2 ${scheduleType === 'now' ? 'text-brand-primary' : 'text-gray-400'}`} />
               <p className="font-medium text-gray-800">Upload now</p>
               <p className="text-xs text-gray-500 mt-1">Creates drafts immediately</p>
             </button>
@@ -78,12 +78,12 @@ function SchedulePicker({ isOpen, onClose, onConfirm, listingCount }) {
               className={`
                 p-4 rounded-xl border-2 text-left transition-all
                 ${scheduleType === 'scheduled' 
-                  ? 'border-etsy-orange bg-etsy-light' 
+                  ? 'border-brand-primary bg-brand-light' 
                   : 'border-gray-200 hover:border-gray-300'
                 }
               `}
             >
-              <Clock className={`w-5 h-5 mb-2 ${scheduleType === 'scheduled' ? 'text-etsy-orange' : 'text-gray-400'}`} />
+              <Clock className={`w-5 h-5 mb-2 ${scheduleType === 'scheduled' ? 'text-brand-primary' : 'text-gray-400'}`} />
               <p className="font-medium text-gray-800">Schedule</p>
               <p className="text-xs text-gray-500 mt-1">Choose date & time</p>
             </button>
@@ -115,7 +115,7 @@ function SchedulePicker({ isOpen, onClose, onConfirm, listingCount }) {
                       className={`
                         p-3 rounded-lg border text-left transition-all
                         ${time === t 
-                          ? 'border-etsy-orange bg-etsy-light' 
+                          ? 'border-brand-primary bg-brand-light' 
                           : 'border-gray-200 hover:border-gray-300'
                         }
                       `}
@@ -167,7 +167,7 @@ function SchedulePicker({ isOpen, onClose, onConfirm, listingCount }) {
           </button>
           <button
             onClick={handleConfirm}
-            className="flex-1 px-4 py-3 bg-etsy-orange text-white rounded-lg font-medium hover:bg-etsy-orange-dark transition-colors"
+            className="flex-1 px-4 py-3 bg-brand-primary text-white rounded-lg font-medium hover:bg-brand-dark transition-colors"
           >
             {scheduleType === 'now' ? 'Upload now' : 'Schedule'}
           </button>

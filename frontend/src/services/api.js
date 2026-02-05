@@ -399,6 +399,131 @@ class ApiService {
     return response.json()
   }
 
+  // ============== Listing Manager ==============
+  
+  /**
+   * Sync listings from Etsy to local cache
+   * @param {string[]} states - States to sync (active, draft, expired, inactive, sold_out)
+   */
+  async syncShopListings(states = null) {
+    return this.request('/api/shop/sync', {
+      method: 'POST',
+      body: JSON.stringify({ states })
+    })
+  }
+
+  /**
+   * Get cached listings with pagination
+   * @param {Object} params - Query parameters
+   */
+  async getShopListings(params = {}) {
+    const query = new URLSearchParams({
+      state: params.state || 'active',
+      page: params.page || 1,
+      per_page: params.perPage || 25,
+      ...(params.search && { search: params.search }),
+      ...(params.sortBy && { sort_by: params.sortBy }),
+      ...(params.sortOrder && { sort_order: params.sortOrder })
+    })
+    return this.request(`/api/shop/listings?${query}`)
+  }
+
+  /**
+   * Get a single listing with full details
+   * @param {string} listingId - Etsy listing ID
+   */
+  async getShopListing(listingId) {
+    return this.request(`/api/shop/listings/${listingId}`)
+  }
+
+  /**
+   * Update a single listing
+   * @param {string} listingId - Etsy listing ID
+   * @param {Object} updates - Fields to update (title, description, tags, price, quantity)
+   */
+  async updateShopListing(listingId, updates) {
+    return this.request(`/api/shop/listings/${listingId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates)
+    })
+  }
+
+  /**
+   * Bulk update multiple listings
+   * @param {string[]} listingIds - Array of listing IDs
+   * @param {Object} updates - Updates to apply (can be per-listing or global)
+   */
+  async bulkUpdateListings(listingIds, updates) {
+    return this.request('/api/shop/listings/bulk', {
+      method: 'PATCH',
+      body: JSON.stringify({ listing_ids: listingIds, updates })
+    })
+  }
+
+  /**
+   * Regenerate AI content for a listing
+   * @param {string} listingId - Etsy listing ID
+   * @param {string} field - Field to regenerate (title, description, tags)
+   * @param {string} instruction - AI guidance instruction
+   * @param {number} imageRank - Which image to use for AI analysis
+   */
+  async regenerateListingContent(listingId, field, instruction = '', imageRank = 1) {
+    return this.request(`/api/shop/listings/${listingId}/regenerate`, {
+      method: 'POST',
+      body: JSON.stringify({ field, instruction, image_rank: imageRank })
+    })
+  }
+
+  /**
+   * Upload an image to a listing
+   * @param {string} listingId - Etsy listing ID
+   * @param {File} imageFile - Image file
+   * @param {number} rank - Position/rank of the image (1-10)
+   */
+  async uploadListingImage(listingId, imageFile, rank = 1) {
+    const formData = new FormData()
+    formData.append('image', imageFile)
+    formData.append('rank', rank)
+
+    const response = await fetch(`${API_BASE}/api/shop/listings/${listingId}/images`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.accessToken}`
+      },
+      body: formData
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Image upload failed')
+    }
+
+    return response.json()
+  }
+
+  /**
+   * Delete an image from a listing
+   * @param {string} listingId - Etsy listing ID
+   * @param {string} imageId - Image ID to delete
+   */
+  async deleteListingImage(listingId, imageId) {
+    return this.request(`/api/shop/listings/${listingId}/images/${imageId}`, {
+      method: 'DELETE'
+    })
+  }
+
+  /**
+   * Reorder images for a listing
+   * @param {string} listingId - Etsy listing ID
+   * @param {string[]} imageIds - Image IDs in new order
+   */
+  async reorderListingImages(listingId, imageIds) {
+    return this.request(`/api/shop/listings/${listingId}/images/reorder`, {
+      method: 'PATCH',
+      body: JSON.stringify({ image_ids: imageIds })
+    })
+  }
+
   // ============== Health ==============
   async healthCheck() {
     return this.request('/api/health', { auth: false })

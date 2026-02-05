@@ -5,6 +5,7 @@ import Navbar from './components/Navbar'
 import UploadPage from './pages/UploadPage'
 import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
+import ListingManagerPage from './pages/ListingManagerPage'
 import LoginPage from './pages/LoginPage'
 import AuthCallbackPage from './pages/AuthCallbackPage'
 import { api } from './services/api'
@@ -92,7 +93,7 @@ function App() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Demo Mode Banner */}
       {isDemoMode && !isAuthenticated && (
-        <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2">
+        <div className="bg-gradient-to-r from-rose-400 to-brand-primary text-white px-4 py-2">
           <div className="container mx-auto flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">🎭 Demo Mode</span>
@@ -129,6 +130,10 @@ function App() {
           <Route 
             path="/dashboard" 
             element={<DashboardPage uploads={uploads} />} 
+          />
+          <Route 
+            path="/shop-listings" 
+            element={<ListingManagerPage />} 
           />
           <Route 
             path="/settings" 

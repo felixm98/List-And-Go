@@ -105,8 +105,8 @@ function ListingGrid({ listings, onUpdate, onRemove, onUpload, onClear }) {
                 absolute -top-2 -left-2 z-10 w-6 h-6 rounded-full border-2 cursor-pointer
                 flex items-center justify-center transition-all
                 ${selectedListings.has(listing.id) 
-                  ? 'bg-etsy-orange border-etsy-orange' 
-                  : 'bg-white border-gray-300 hover:border-etsy-orange'
+                  ? 'bg-brand-primary border-brand-primary' 
+                  : 'bg-white border-gray-300 hover:border-brand-primary'
                 }
               `}
               onClick={() => toggleSelect(listing.id)}
