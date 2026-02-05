@@ -117,10 +117,111 @@ export default function PresetEditor({ preset, onSave, onClose }) {
   // Category search
   const [categorySearch, setCategorySearch] = useState('')
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
+  // Check if in demo mode
+  const isDemoMode = localStorage.getItem('demoMode') === 'true' && !localStorage.getItem('accessToken')
   
   // Tags/materials input
   const [tagInput, setTagInput] = useState('')
   const [materialInput, setMaterialInput] = useState('')
+  const [propertiesError, setPropertiesError] = useState(null)
+
+  // Mock category properties for demo mode
+  const getMockCategoryProperties = (taxonomyId) => {
+    // Common properties that appear in many categories
+    return [
+      {
+        property_id: 513,
+        name: 'primary_color',
+        display_name: 'Primary color',
+        is_required: false,
+        possible_values: [
+          { value_id: 1, name: 'Black' },
+          { value_id: 2, name: 'White' },
+          { value_id: 3, name: 'Blue' },
+          { value_id: 4, name: 'Red' },
+          { value_id: 5, name: 'Green' },
+          { value_id: 6, name: 'Yellow' },
+          { value_id: 7, name: 'Purple' },
+          { value_id: 8, name: 'Pink' },
+          { value_id: 9, name: 'Orange' },
+          { value_id: 10, name: 'Brown' },
+          { value_id: 11, name: 'Gray' },
+          { value_id: 12, name: 'Beige' }
+        ]
+      },
+      {
+        property_id: 514,
+        name: 'secondary_color',
+        display_name: 'Secondary color',
+        is_required: false,
+        possible_values: [
+          { value_id: 1, name: 'Black' },
+          { value_id: 2, name: 'White' },
+          { value_id: 3, name: 'Blue' },
+          { value_id: 4, name: 'Red' },
+          { value_id: 5, name: 'Green' },
+          { value_id: 6, name: 'Yellow' },
+          { value_id: 7, name: 'Purple' },
+          { value_id: 8, name: 'Pink' }
+        ]
+      },
+      {
+        property_id: 46803063641,
+        name: 'holiday',
+        display_name: 'Holiday',
+        is_required: false,
+        possible_values: [
+          { value_id: 1, name: 'Christmas' },
+          { value_id: 2, name: 'Halloween' },
+          { value_id: 3, name: 'Valentine\'s Day' },
+          { value_id: 4, name: 'Easter' },
+          { value_id: 5, name: 'Thanksgiving' },
+          { value_id: 6, name: 'New Year' },
+          { value_id: 7, name: 'Mother\'s Day' },
+          { value_id: 8, name: 'Father\'s Day' }
+        ]
+      },
+      {
+        property_id: 46803063659,
+        name: 'occasion',
+        display_name: 'Occasion',
+        is_required: false,
+        possible_values: [
+          { value_id: 1, name: 'Birthday' },
+          { value_id: 2, name: 'Wedding' },
+          { value_id: 3, name: 'Anniversary' },
+          { value_id: 4, name: 'Graduation' },
+          { value_id: 5, name: 'Housewarming' },
+          { value_id: 6, name: 'Baby shower' }
+        ]
+      },
+      {
+        property_id: 47626756645,
+        name: 'orientation',
+        display_name: 'Orientation',
+        is_required: false,
+        possible_values: [
+          { value_id: 1, name: 'Horizontal' },
+          { value_id: 2, name: 'Vertical' },
+          { value_id: 3, name: 'Square' }
+        ]
+      },
+      {
+        property_id: 52047899002,
+        name: 'room',
+        display_name: 'Room',
+        is_required: false,
+        possible_values: [
+          { value_id: 1, name: 'Living room' },
+          { value_id: 2, name: 'Bedroom' },
+          { value_id: 3, name: 'Bathroom' },
+          { value_id: 4, name: 'Kitchen' },
+          { value_id: 5, name: 'Office' },
+          { value_id: 6, name: 'Nursery' }
+        ]
+      }
+    ]
+  }
 
   useEffect(() => {
     if (preset) {
@@ -151,12 +252,32 @@ export default function PresetEditor({ preset, onSave, onClose }) {
 
   const loadCategoryProperties = async (taxonomyId) => {
     setLoadingProperties(true)
+    setPropertiesError(null)
+    
+    // In demo mode, use mock data
+    if (isDemoMode) {
+      setCategoryProperties(getMockCategoryProperties(taxonomyId))
+      setLoadingProperties(false)
+      return
+    }
+    
     try {
       const data = await api.getCategoryProperties(taxonomyId)
       setCategoryProperties(data.properties || [])
+      
+      // If no properties returned, might be API key issue
+      if (!data.properties || data.properties.length === 0) {
+        setPropertiesError('no_properties')
+      }
     } catch (err) {
       console.error('Failed to load category properties:', err)
       setCategoryProperties([])
+      // Check if it's an API key error
+      if (err.message?.includes('API') || err.message?.includes('401') || err.message?.includes('403')) {
+        setPropertiesError('api_key')
+      } else {
+        setPropertiesError('fetch_error')
+      }
     } finally {
       setLoadingProperties(false)
     }
@@ -444,9 +565,38 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                         Laddar attribut...
                       </div>
                     ) : categoryProperties.length === 0 ? (
-                      <p className="text-sm text-gray-500">
-                        Inga specifika attribut för denna kategori.
-                      </p>
+                      <div className="space-y-2">
+                        {propertiesError === 'api_key' ? (
+                          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                            <p className="text-sm text-amber-800 font-medium">⚠️ Etsy API ej tillgängligt</p>
+                            <p className="text-xs text-amber-600 mt-1">
+                              Kategori-attribut kräver en aktiv Etsy API-nyckel. Anslut ditt Etsy-konto för att se alla attribut.
+                            </p>
+                          </div>
+                        ) : propertiesError === 'no_properties' ? (
+                          <p className="text-sm text-gray-500">
+                            Denna kategori har inga specifika attribut, eller så kunde de inte laddas.
+                          </p>
+                        ) : (
+                          <div className="p-3 bg-gray-100 border border-gray-200 rounded-lg">
+                            <p className="text-sm text-gray-600">
+                              Inga specifika attribut för denna kategori.
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Attribut som färg, holiday och occasion visas här när de är tillgängliga.
+                            </p>
+                          </div>
+                        )}
+                        
+                        {isDemoMode && (
+                          <div className="p-3 bg-indigo-100 border border-indigo-200 rounded-lg">
+                            <p className="text-sm text-indigo-800 font-medium">🎭 Demoläge aktivt</p>
+                            <p className="text-xs text-indigo-600 mt-1">
+                              I demoläge visas exempelattribut. Logga in med Etsy för att se riktiga attribut för varje kategori.
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {categoryProperties.map(prop => (
