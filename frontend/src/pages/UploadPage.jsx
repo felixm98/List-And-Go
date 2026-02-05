@@ -259,24 +259,29 @@ function UploadPage({ listings, addListings, updateListing, removeListing, clear
           <span className="w-6 h-6 bg-brand-primary text-white rounded-full flex items-center justify-center text-sm">?</span>
           How it works
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="flex flex-col items-center text-center p-4 bg-gray-50 rounded-lg">
             <div className="w-10 h-10 bg-brand-light text-brand-primary rounded-full flex items-center justify-center font-bold mb-3">1</div>
-            <h4 className="font-medium text-gray-800 mb-1">Upload</h4>
-            <p className="text-sm text-gray-500">Drag and drop folders with your mockup images</p>
+            <h4 className="font-medium text-gray-800 mb-1">Create Preset</h4>
+            <p className="text-sm text-gray-500">Set up price, category, shipping once — reuse for all listings</p>
           </div>
           <div className="flex flex-col items-center text-center p-4 bg-gray-50 rounded-lg">
             <div className="w-10 h-10 bg-brand-light text-brand-primary rounded-full flex items-center justify-center font-bold mb-3">2</div>
+            <h4 className="font-medium text-gray-800 mb-1">Upload</h4>
+            <p className="text-sm text-gray-500">Drag folders and select a preset to apply settings</p>
+          </div>
+          <div className="flex flex-col items-center text-center p-4 bg-gray-50 rounded-lg">
+            <div className="w-10 h-10 bg-brand-light text-brand-primary rounded-full flex items-center justify-center font-bold mb-3">3</div>
             <h4 className="font-medium text-gray-800 mb-1">AI Generation</h4>
             <p className="text-sm text-gray-500">AI creates titles, descriptions and tags automatically</p>
           </div>
           <div className="flex flex-col items-center text-center p-4 bg-gray-50 rounded-lg">
-            <div className="w-10 h-10 bg-brand-light text-brand-primary rounded-full flex items-center justify-center font-bold mb-3">3</div>
+            <div className="w-10 h-10 bg-brand-light text-brand-primary rounded-full flex items-center justify-center font-bold mb-3">4</div>
             <h4 className="font-medium text-gray-800 mb-1">Review & Edit</h4>
             <p className="text-sm text-gray-500">Adjust content and see SEO score in real-time</p>
           </div>
           <div className="flex flex-col items-center text-center p-4 bg-gray-50 rounded-lg">
-            <div className="w-10 h-10 bg-brand-light text-brand-primary rounded-full flex items-center justify-center font-bold mb-3">4</div>
+            <div className="w-10 h-10 bg-brand-light text-brand-primary rounded-full flex items-center justify-center font-bold mb-3">5</div>
             <h4 className="font-medium text-gray-800 mb-1">Publish</h4>
             <p className="text-sm text-gray-500">Upload as drafts to your Etsy shop</p>
           </div>

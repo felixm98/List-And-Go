@@ -47,8 +47,13 @@ export default function LoginPage({ onEnterDemo }) {
   const steps = [
     {
       icon: Upload,
+      title: 'Create a preset',
+      description: 'Set up price, category, shipping and more once. Reuse for all future listings.'
+    },
+    {
+      icon: Upload,
       title: 'Upload folders',
-      description: 'Drag and drop folders with product images. Each folder becomes a listing.'
+      description: 'Drag and drop folders with product images. Select a preset to apply settings automatically.'
     },
     {
       icon: Sparkles,
@@ -207,6 +212,10 @@ export default function LoginPage({ onEnterDemo }) {
                 <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4">
                   <h4 className="font-medium text-amber-900 mb-1">📊 SEO-Optimized</h4>
                   <p className="text-xs text-amber-700">Maximize visibility on Etsy</p>
+                </div>
+                <div className="col-span-2 bg-gradient-to-br from-rose-50 to-rose-100 rounded-xl p-4">
+                  <h4 className="font-medium text-rose-900 mb-1">⚡ Reusable Presets</h4>
+                  <p className="text-xs text-rose-700">Save your settings once and apply them to all listings automatically</p>
                 </div>
               </div>
             </div>
