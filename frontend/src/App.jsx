@@ -24,6 +24,7 @@ function App() {
   const [listings, setListings] = useState([])
   const [uploads, setUploads] = useState([])
   const [isAuthenticated, setIsAuthenticated] = useState(api.isAuthenticated())
+  const [isDemoMode, setIsDemoMode] = useState(localStorage.getItem('demoMode') === 'true')
 
   // Listen for auth changes
   useEffect(() => {
@@ -36,12 +37,24 @@ function App() {
     return () => window.removeEventListener('storage', checkAuth)
   }, [])
 
+  const handleEnterDemo = () => {
+    setIsDemoMode(true)
+    localStorage.setItem('demoMode', 'true')
+  }
+
+  const handleExitDemo = () => {
+    setIsDemoMode(false)
+    localStorage.removeItem('demoMode')
+  }
+
   const handleLogout = () => {
     api.logout()
     setIsAuthenticated(false)
+    setIsDemoMode(false)
     setListings([])
     setUploads([])
     localStorage.removeItem('shopName')
+    localStorage.removeItem('demoMode')
   }
 
   const addListings = (newListings) => {
@@ -64,11 +77,11 @@ function App() {
     setListings([])
   }
 
-  // If not authenticated, show login routes only
-  if (!isAuthenticated) {
+  // If not authenticated and not in demo mode, show login routes only
+  if (!isAuthenticated && !isDemoMode) {
     return (
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<LoginPage onEnterDemo={handleEnterDemo} />} />
         <Route path="/auth-callback" element={<AuthCallbackPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
@@ -77,7 +90,27 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar listingsCount={listings.length} onLogout={handleLogout} />
+      {/* Demo Mode Banner */}
+      {isDemoMode && !isAuthenticated && (
+        <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2">
+          <div className="container mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">🎭 Demoläge</span>
+              <span className="text-sm opacity-90">– Du utforskar appen utan inloggning. Vissa funktioner är begränsade.</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => { handleExitDemo(); }}
+                className="text-sm underline hover:no-underline"
+              >
+                Tillbaka till inloggning
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <Navbar listingsCount={listings.length} onLogout={handleLogout} isDemoMode={isDemoMode && !isAuthenticated} />
       <main className="container mx-auto px-4 py-6 flex-grow">
         <Routes>
           <Route 

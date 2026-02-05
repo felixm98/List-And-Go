@@ -1,17 +1,21 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Upload, LayoutDashboard, Settings, LogOut, Store } from 'lucide-react'
+import { Upload, LayoutDashboard, Settings, LogOut, Store, Eye } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import api from '../services/api'
 
-function Navbar({ listingsCount, onLogout }) {
+function Navbar({ listingsCount, onLogout, isDemoMode = false }) {
   const location = useLocation()
   const [etsyStatus, setEtsyStatus] = useState({ connected: false, shop: null })
   const [loading, setLoading] = useState(true)
   const [shopName, setShopName] = useState(localStorage.getItem('shopName') || null)
 
   useEffect(() => {
-    checkEtsyStatus()
-  }, [])
+    if (!isDemoMode) {
+      checkEtsyStatus()
+    } else {
+      setLoading(false)
+    }
+  }, [isDemoMode])
 
   const checkEtsyStatus = async () => {
     try {
@@ -102,8 +106,13 @@ function Navbar({ listingsCount, onLogout }) {
 
           {/* Right side - Shop info and logout */}
           <div className="flex items-center gap-3">
-            {/* Shop Name Display */}
-            {loading ? (
+            {/* Shop Name Display or Demo Mode indicator */}
+            {isDemoMode ? (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 rounded-full text-sm">
+                <Eye className="w-4 h-4" />
+                <span className="font-medium">Demoläge</span>
+              </div>
+            ) : loading ? (
               <div className="px-3 py-1.5 bg-gray-100 text-gray-500 rounded-full text-sm">
                 Laddar...
               </div>
@@ -118,10 +127,10 @@ function Navbar({ listingsCount, onLogout }) {
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 px-3 py-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              title="Logga ut"
+              title={isDemoMode ? "Avsluta demo" : "Logga ut"}
             >
               <LogOut className="w-4 h-4" />
-              <span className="text-sm">Logga ut</span>
+              <span className="text-sm">{isDemoMode ? "Avsluta" : "Logga ut"}</span>
             </button>
           </div>
         </div>

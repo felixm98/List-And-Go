@@ -26,11 +26,32 @@ export default function SettingsPage() {
   const [showTemplateEditor, setShowTemplateEditor] = useState(false)
   const [previewPreset, setPreviewPreset] = useState(null)
 
+  const isDemoMode = localStorage.getItem('demoMode') === 'true' && !localStorage.getItem('accessToken')
+
   useEffect(() => {
     loadData()
   }, [])
 
   const loadData = async () => {
+    // In demo mode, use mock data
+    if (isDemoMode) {
+      setSettings({
+        default_price: 9.99,
+        default_quantity: 999,
+        auto_renew: true
+      })
+      setEtsyStatus({ connected: true, shop: { shop_name: 'Demo Shop', shop_id: '12345', is_valid: true } })
+      setPresets([
+        { id: 1, name: 'Digital Art Preset', preset_type: 'digital', price: 4.99 },
+        { id: 2, name: 'Print on Demand', preset_type: 'physical', price: 19.99 }
+      ])
+      setDescriptionTemplates([
+        { id: 1, name: 'Standard Description' }
+      ])
+      setLoading(false)
+      return
+    }
+
     try {
       const [settingsData, etsyData, presetsData, templatesData] = await Promise.all([
         api.getSettings(),
@@ -56,6 +77,11 @@ export default function SettingsPage() {
   }
 
   const handleSave = async () => {
+    if (isDemoMode) {
+      setMessage({ type: 'success', text: 'Demo: Inställningar skulle sparas här!' })
+      return
+    }
+    
     setSaving(true)
     setMessage(null)
     
