@@ -72,7 +72,7 @@ function ListingCard({ listing, onUpdate, onRemove }) {
         {/* Image count badge */}
         {listing.images.length > 1 && (
           <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
-            +{listing.images.length - 1} bilder
+            +{listing.images.length - 1} images
           </div>
         )}
         
@@ -81,14 +81,14 @@ function ListingCard({ listing, onUpdate, onRemove }) {
           <button
             onClick={() => setIsEditing(!isEditing)}
             className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors"
-            title="Redigera"
+            title="Edit"
           >
             <Edit2 className="w-4 h-4 text-gray-600" />
           </button>
           <button
             onClick={() => onRemove(listing.id)}
             className="p-2 bg-white rounded-full shadow-md hover:bg-red-50 transition-colors"
-            title="Ta bort"
+            title="Delete"
           >
             <Trash2 className="w-4 h-4 text-red-500" />
           </button>
@@ -107,7 +107,7 @@ function ListingCard({ listing, onUpdate, onRemove }) {
           <div className="space-y-4">
             {/* Title */}
             <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Titel</label>
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Title</label>
               <input
                 type="text"
                 value={editData.title}
@@ -115,12 +115,12 @@ function ListingCard({ listing, onUpdate, onRemove }) {
                 maxLength={140}
                 className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
               />
-              <p className="text-xs text-gray-400 mt-1">{editData.title.length}/140 tecken</p>
+              <p className="text-xs text-gray-400 mt-1">{editData.title.length}/140 characters</p>
             </div>
             
             {/* Price */}
             <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Pris (SEK)</label>
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Price (USD)</label>
               <input
                 type="number"
                 value={editData.price}
@@ -152,7 +152,7 @@ function ListingCard({ listing, onUpdate, onRemove }) {
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addTag()}
-                    placeholder="Lägg till tag..."
+                    placeholder="Add tag..."
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
                   />
                   <button
@@ -167,7 +167,7 @@ function ListingCard({ listing, onUpdate, onRemove }) {
             
             {/* Description */}
             <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Beskrivning</label>
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Description</label>
               <textarea
                 value={editData.description}
                 onChange={(e) => setEditData(d => ({ ...d, description: e.target.value }))}
@@ -180,10 +180,10 @@ function ListingCard({ listing, onUpdate, onRemove }) {
             <div className="border-t pt-4">
               <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide flex items-center gap-1">
                 <Tag className="w-3 h-3" />
-                Etsy-attribut (Holiday, Occasion, etc.)
+                Etsy Attributes (Holiday, Occasion, etc.)
               </h4>
               <p className="text-xs text-gray-400 mb-3">
-                Dessa synkas till Etsy som listningsegenskaper
+                These sync to Etsy as listing properties
               </p>
               
               <div className="grid grid-cols-2 gap-3">
@@ -194,7 +194,7 @@ function ListingCard({ listing, onUpdate, onRemove }) {
                     type="text"
                     value={editData.listing_attributes?.holiday || ''}
                     onChange={(e) => updateAttribute('holiday', e.target.value)}
-                    placeholder="t.ex. Christmas, Valentine's Day"
+                    placeholder="e.g. Christmas, Valentine's Day"
                     className="w-full mt-1 px-2 py-1.5 border border-gray-200 rounded text-sm"
                   />
                 </div>
@@ -267,13 +267,13 @@ function ListingCard({ listing, onUpdate, onRemove }) {
                 onClick={handleCancel}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50"
               >
-                Avbryt
+                Cancel
               </button>
               <button
                 onClick={handleSave}
                 className="flex-1 px-3 py-2 bg-etsy-orange text-white rounded-lg text-sm font-medium hover:bg-etsy-orange-dark"
               >
-                Spara
+                Save
               </button>
             </div>
           </div>
@@ -313,12 +313,12 @@ function ListingCard({ listing, onUpdate, onRemove }) {
               {isExpanded ? (
                 <>
                   <ChevronUp className="w-4 h-4" />
-                  Dölj beskrivning
+                  Hide description
                 </>
               ) : (
                 <>
                   <ChevronDown className="w-4 h-4" />
-                  Visa beskrivning
+                  Show description
                 </>
               )}
             </button>

@@ -33,7 +33,7 @@ function Navbar({ listingsCount, onLogout, isDemoMode = false }) {
   }
 
   const handleLogout = () => {
-    if (confirm('Är du säker på att du vill logga ut?')) {
+    if (confirm('Are you sure you want to log out?')) {
       onLogout()
     }
   }
@@ -67,7 +67,7 @@ function Navbar({ listingsCount, onLogout, isDemoMode = false }) {
               `}
             >
               <Upload className="w-4 h-4" />
-              Ladda upp
+              Upload
               {listingsCount > 0 && (
                 <span className="ml-1 px-2 py-0.5 bg-etsy-orange text-white text-xs rounded-full">
                   {listingsCount}
@@ -100,7 +100,7 @@ function Navbar({ listingsCount, onLogout, isDemoMode = false }) {
               `}
             >
               <Settings className="w-4 h-4" />
-              Inställningar
+              Settings
             </Link>
           </div>
 
@@ -110,16 +110,16 @@ function Navbar({ listingsCount, onLogout, isDemoMode = false }) {
             {isDemoMode ? (
               <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 rounded-full text-sm">
                 <Eye className="w-4 h-4" />
-                <span className="font-medium">Demoläge</span>
+                <span className="font-medium">Demo Mode</span>
               </div>
             ) : loading ? (
               <div className="px-3 py-1.5 bg-gray-100 text-gray-500 rounded-full text-sm">
-                Laddar...
+                Loading...
               </div>
             ) : (
               <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-sm">
                 <Store className="w-4 h-4" />
-                <span className="font-medium">{shopName || etsyStatus.shop?.shop_name || 'Min butik'}</span>
+                <span className="font-medium">{shopName || etsyStatus.shop?.shop_name || 'My Shop'}</span>
               </div>
             )}
 
@@ -127,10 +127,10 @@ function Navbar({ listingsCount, onLogout, isDemoMode = false }) {
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 px-3 py-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              title={isDemoMode ? "Avsluta demo" : "Logga ut"}
+              title={isDemoMode ? "Exit demo" : "Log out"}
             >
               <LogOut className="w-4 h-4" />
-              <span className="text-sm">{isDemoMode ? "Avsluta" : "Logga ut"}</span>
+              <span className="text-sm">{isDemoMode ? "Exit" : "Log out"}</span>
             </button>
           </div>
         </div>

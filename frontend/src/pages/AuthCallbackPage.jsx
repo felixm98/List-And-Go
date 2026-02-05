@@ -34,10 +34,10 @@ export default function AuthCallbackPage() {
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
         <Loader2 className="w-12 h-12 text-etsy-orange animate-spin mx-auto mb-4" />
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          Loggar in...
+          Logging in...
         </h2>
         <p className="text-gray-500">
-          Vänta medan vi slutför inloggningen
+          Please wait while we complete the login
         </p>
       </div>
     </div>

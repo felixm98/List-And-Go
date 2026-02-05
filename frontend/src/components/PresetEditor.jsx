@@ -8,9 +8,9 @@ import { api } from '../services/api'
 
 // Etsy enum values
 const WHO_MADE_OPTIONS = [
-  { value: 'i_did', label: 'Jag gjorde det' },
-  { value: 'someone_else', label: 'Någon annan gjorde det' },
-  { value: 'collective', label: 'Ett kollektiv' }
+  { value: 'i_did', label: 'I did' },
+  { value: 'someone_else', label: 'Someone else did' },
+  { value: 'collective', label: 'A collective' }
 ]
 
 const WHEN_MADE_OPTIONS = [
@@ -18,19 +18,19 @@ const WHEN_MADE_OPTIONS = [
   { value: '2020_2026', label: '2020-2026' },
   { value: '2010_2019', label: '2010-2019' },
   { value: '2007_2009', label: '2007-2009' },
-  { value: 'before_2007', label: 'Före 2007' },
+  { value: 'before_2007', label: 'Before 2007' },
   { value: '2000_2006', label: '2000-2006' },
-  { value: '1990s', label: '1990-talet' },
-  { value: '1980s', label: '1980-talet' },
-  { value: '1970s', label: '1970-talet' },
-  { value: '1960s', label: '1960-talet' },
-  { value: '1950s', label: '1950-talet' }
+  { value: '1990s', label: '1990s' },
+  { value: '1980s', label: '1980s' },
+  { value: '1970s', label: '1970s' },
+  { value: '1960s', label: '1960s' },
+  { value: '1950s', label: '1950s' }
 ]
 
 const LISTING_TYPE_OPTIONS = [
-  { value: 'download', label: 'Digital nedladdning' },
-  { value: 'physical', label: 'Fysisk produkt' },
-  { value: 'both', label: 'Båda' }
+  { value: 'download', label: 'Digital download' },
+  { value: 'physical', label: 'Physical product' },
+  { value: 'both', label: 'Both' }
 ]
 
 const WEIGHT_UNITS = [
@@ -49,9 +49,9 @@ const DIMENSION_UNITS = [
 ]
 
 const DESCRIPTION_SOURCES = [
-  { value: 'ai', label: '🤖 AI-genererad', description: 'Genereras automatiskt baserat på bilden' },
-  { value: 'template', label: '📝 Använd mall', description: 'Använd en av dina sparade mallar' },
-  { value: 'manual', label: '✍️ Egen text', description: 'Skriv en fast description för denna preset' }
+  { value: 'ai', label: '🤖 AI-generated', description: 'Generated automatically based on the image' },
+  { value: 'template', label: '📝 Use template', description: 'Use one of your saved templates' },
+  { value: 'manual', label: '✍️ Custom text', description: 'Write a fixed description for this preset' }
 ]
 
 export default function PresetEditor({ preset, onSave, onClose }) {
@@ -349,7 +349,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      setError('Presetnamn krävs')
+      setError('Preset name is required')
       return
     }
 
@@ -374,7 +374,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
       }
       onSave()
     } catch (err) {
-      setError(err.message || 'Kunde inte spara preset')
+      setError(err.message || 'Could not save preset')
     } finally {
       setSaving(false)
     }
@@ -389,7 +389,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
         <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-etsy-orange to-orange-500">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Package className="w-6 h-6" />
-            {preset ? 'Redigera Preset' : 'Skapa ny Preset'}
+            {preset ? 'Edit Preset' : 'Create New Preset'}
           </h2>
           <button onClick={onClose} className="text-white/80 hover:text-white">
             <X className="w-6 h-6" />
@@ -410,19 +410,19 @@ export default function PresetEditor({ preset, onSave, onClose }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Presetnamn *
+                  Preset Name *
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleChange('name', e.target.value)}
-                  placeholder="t.ex. Digital Wall Art"
+                  placeholder="e.g. Digital Wall Art"
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-etsy-orange/50"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Listningstyp *
+                  Listing Type *
                 </label>
                 <select
                   value={formData.listing_type}
@@ -440,7 +440,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
             <div className="bg-green-50 rounded-lg p-4">
               <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
                 <FolderTree className="w-5 h-5 text-green-600" />
-                Kategori (obligatoriskt för Etsy)
+                Category (required for Etsy)
               </h3>
               <div className="relative">
                 <div className="flex gap-2">
@@ -454,7 +454,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                         setShowCategoryDropdown(true)
                       }}
                       onFocus={() => setShowCategoryDropdown(true)}
-                      placeholder="Sök kategori..."
+                      placeholder="Search category..."
                       className="w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500/50"
                     />
                   </div>
@@ -464,7 +464,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                 {formData.taxonomy_path && (
                   <div className="mt-2 p-2 bg-green-100 rounded-lg flex items-center justify-between">
                     <span className="text-sm text-green-800">
-                      <strong>Vald:</strong> {formData.taxonomy_path}
+                      <strong>Selected:</strong> {formData.taxonomy_path}
                     </span>
                     <button
                       onClick={() => {
@@ -473,7 +473,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                       }}
                       className="text-green-600 hover:text-red-500 text-sm"
                     >
-                      Rensa
+                      Clear
                     </button>
                   </div>
                 )}
@@ -508,7 +508,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                     {categories.filter(cat => 
                       cat.name?.toLowerCase().includes(categorySearch.toLowerCase())
                     ).length === 0 && (
-                      <div className="px-3 py-2 text-sm text-gray-500">Inga kategorier hittades</div>
+                      <div className="px-3 py-2 text-sm text-gray-500">No categories found</div>
                     )}
                   </div>
                 )}
@@ -516,7 +516,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
               
               {/* Common digital categories quick select */}
               <div className="mt-3">
-                <p className="text-xs text-gray-500 mb-2">Snabbval för digitala produkter:</p>
+                <p className="text-xs text-gray-500 mb-2">Quick select for digital products:</p>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { id: 2078, name: 'Digital Downloads', path: 'Craft Supplies & Tools > Digital' },
@@ -552,7 +552,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                 >
                   <span className="flex items-center gap-2">
                     <Palette className="w-5 h-5 text-indigo-600" />
-                    Kategori-attribut ({categoryProperties.length} tillgängliga)
+                    Category Attributes ({categoryProperties.length} available)
                   </span>
                   {showCategoryAttributes ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </button>
@@ -562,37 +562,37 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                     {loadingProperties ? (
                       <div className="flex items-center gap-2 text-gray-500 py-4">
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Laddar attribut...
+                        Loading attributes...
                       </div>
                     ) : categoryProperties.length === 0 ? (
                       <div className="space-y-2">
                         {propertiesError === 'api_key' ? (
                           <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                            <p className="text-sm text-amber-800 font-medium">⚠️ Etsy API ej tillgängligt</p>
+                            <p className="text-sm text-amber-800 font-medium">⚠️ Etsy API not available</p>
                             <p className="text-xs text-amber-600 mt-1">
-                              Kategori-attribut kräver en aktiv Etsy API-nyckel. Anslut ditt Etsy-konto för att se alla attribut.
+                              Category attributes require an active Etsy API key. Connect your Etsy account to see all attributes.
                             </p>
                           </div>
                         ) : propertiesError === 'no_properties' ? (
                           <p className="text-sm text-gray-500">
-                            Denna kategori har inga specifika attribut, eller så kunde de inte laddas.
+                            This category has no specific attributes, or they could not be loaded.
                           </p>
                         ) : (
                           <div className="p-3 bg-gray-100 border border-gray-200 rounded-lg">
                             <p className="text-sm text-gray-600">
-                              Inga specifika attribut för denna kategori.
+                              No specific attributes for this category.
                             </p>
                             <p className="text-xs text-gray-400 mt-1">
-                              Attribut som färg, holiday och occasion visas här när de är tillgängliga.
+                              Attributes like color, holiday and occasion will appear here when available.
                             </p>
                           </div>
                         )}
                         
                         {isDemoMode && (
                           <div className="p-3 bg-indigo-100 border border-indigo-200 rounded-lg">
-                            <p className="text-sm text-indigo-800 font-medium">🎭 Demoläge aktivt</p>
+                            <p className="text-sm text-indigo-800 font-medium">🎭 Demo Mode Active</p>
                             <p className="text-xs text-indigo-600 mt-1">
-                              I demoläge visas exempelattribut. Logga in med Etsy för att se riktiga attribut för varje kategori.
+                              In demo mode, sample attributes are shown. Log in with Etsy to see real attributes for each category.
                             </p>
                           </div>
                         )}
@@ -632,7 +632,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                                   onChange={(e) => handlePropertyChange(prop.property_id, parseInt(e.target.value) || null)}
                                   className="w-full px-3 py-2 border rounded-lg bg-white"
                                 >
-                                  <option value="">-- Välj --</option>
+                                  <option value="">-- Select --</option>
                                   {prop.possible_values.map(val => (
                                     <option key={val.value_id} value={val.value_id}>
                                       {val.name}
@@ -647,7 +647,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                                   type="text"
                                   value={formData.category_properties[`${prop.property_id}_value`] || ''}
                                   onChange={(e) => handlePropertyChange(`${prop.property_id}_value`, e.target.value)}
-                                  placeholder="Värde"
+                                  placeholder="Value"
                                   className="flex-1 px-3 py-2 border rounded-lg"
                                 />
                                 <select
@@ -655,7 +655,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                                   onChange={(e) => handlePropertyChange(`${prop.property_id}_scale`, parseInt(e.target.value) || null)}
                                   className="px-3 py-2 border rounded-lg bg-white"
                                 >
-                                  <option value="">Enhet</option>
+                                  <option value="">Unit</option>
                                   {prop.scales.map(scale => (
                                     <option key={scale.scale_id} value={scale.scale_id}>
                                       {scale.display_name}
@@ -669,7 +669,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                                 type="text"
                                 value={formData.category_properties[prop.property_id] || ''}
                                 onChange={(e) => handlePropertyChange(prop.property_id, e.target.value)}
-                                placeholder={`Ange ${prop.display_name || prop.name}`}
+                                placeholder={`Enter ${prop.display_name || prop.name}`}
                                 className="w-full px-3 py-2 border rounded-lg"
                               />
                             )}
@@ -683,7 +683,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                     )}
                     
                     <p className="text-xs text-gray-400 mt-3">
-                      💡 Dessa attribut är specifika för den valda kategorin och hjälper köpare att hitta dina produkter.
+                      💡 These attributes are specific to the selected category and help buyers find your products.
                     </p>
                   </>
                 )}
@@ -694,11 +694,11 @@ export default function PresetEditor({ preset, onSave, onClose }) {
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
                 <DollarSign className="w-5 h-5 text-green-600" />
-                Pris & Kvantitet
+                Price & Quantity
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">Pris (USD)</label>
+                  <label className="block text-sm text-gray-600 mb-1">Price (USD)</label>
                   <input
                     type="number"
                     min="0.20"
@@ -709,7 +709,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">Kvantitet</label>
+                  <label className="block text-sm text-gray-600 mb-1">Quantity</label>
                   <input
                     type="number"
                     min="1"
@@ -719,7 +719,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">Vem gjorde</label>
+                  <label className="block text-sm text-gray-600 mb-1">Who made</label>
                   <select
                     value={formData.who_made}
                     onChange={(e) => handleChange('who_made', e.target.value)}
@@ -731,7 +731,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-600 mb-1">När gjord</label>
+                  <label className="block text-sm text-gray-600 mb-1">When made</label>
                   <select
                     value={formData.when_made}
                     onChange={(e) => handleChange('when_made', e.target.value)}
@@ -751,7 +751,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                     onChange={(e) => handleChange('is_supply', e.target.checked)}
                     className="w-4 h-4 rounded text-etsy-orange"
                   />
-                  <span className="text-sm text-gray-600">Detta är ett material/supply</span>
+                  <span className="text-sm text-gray-600">This is a craft supply/tool</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -760,7 +760,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                     onChange={(e) => handleChange('should_auto_renew', e.target.checked)}
                     className="w-4 h-4 rounded text-etsy-orange"
                   />
-                  <span className="text-sm text-gray-600">Auto-förnya</span>
+                  <span className="text-sm text-gray-600">Auto-renew</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -769,7 +769,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                     onChange={(e) => handleChange('is_taxable', e.target.checked)}
                     className="w-4 h-4 rounded text-etsy-orange"
                   />
-                  <span className="text-sm text-gray-600">Momspliktigt</span>
+                  <span className="text-sm text-gray-600">Taxable</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -778,7 +778,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                     onChange={(e) => handleChange('is_customizable', e.target.checked)}
                     className="w-4 h-4 rounded text-etsy-orange"
                   />
-                  <span className="text-sm text-gray-600">Kan anpassas</span>
+                  <span className="text-sm text-gray-600">Can be customized</span>
                 </label>
               </div>
             </div>
@@ -788,17 +788,17 @@ export default function PresetEditor({ preset, onSave, onClose }) {
               <div className="bg-blue-50 rounded-lg p-4">
                 <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
                   <Truck className="w-5 h-5 text-blue-600" />
-                  Frakt & Returer
+                  Shipping & Returns
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-gray-600 mb-1">Fraktprofil</label>
+                    <label className="block text-sm text-gray-600 mb-1">Shipping Profile</label>
                     <select
                       value={formData.shipping_profile_id}
                       onChange={(e) => handleChange('shipping_profile_id', e.target.value)}
                       className="w-full px-3 py-2 border rounded-lg bg-white"
                     >
-                      <option value="">-- Välj fraktprofil --</option>
+                      <option value="">-- Select shipping profile --</option>
                       {shippingProfiles.map(p => (
                         <option key={p.shipping_profile_id} value={p.shipping_profile_id}>
                           {p.title}
@@ -807,13 +807,13 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-600 mb-1">Returpolicy</label>
+                    <label className="block text-sm text-gray-600 mb-1">Return Policy</label>
                     <select
                       value={formData.return_policy_id}
                       onChange={(e) => handleChange('return_policy_id', e.target.value)}
                       className="w-full px-3 py-2 border rounded-lg bg-white"
                     >
-                      <option value="">-- Välj returpolicy --</option>
+                      <option value="">-- Select return policy --</option>
                       {returnPolicies.map(p => (
                         <option key={p.return_policy_id} value={p.return_policy_id}>
                           {p.accepts_returns ? `Accepterar returer (${p.return_deadline} dagar)` : 'Inga returer'}
@@ -828,14 +828,14 @@ export default function PresetEditor({ preset, onSave, onClose }) {
             {/* Shop Section */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Butikssektion (valfritt)
+                Shop Section (optional)
               </label>
               <select
                 value={formData.shop_section_id}
                 onChange={(e) => handleChange('shop_section_id', e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg"
               >
-                <option value="">-- Ingen sektion --</option>
+                <option value="">-- No section --</option>
                 {shopSections.map(s => (
                   <option key={s.shop_section_id} value={s.shop_section_id}>
                     {s.title}
@@ -848,7 +848,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
             <div className="bg-purple-50 rounded-lg p-4">
               <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-purple-600" />
-                Description-källa
+                Description Source
               </h3>
               <div className="space-y-2">
                 {DESCRIPTION_SOURCES.map(source => (
@@ -883,7 +883,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                     onChange={(e) => handleChange('description_template_id', parseInt(e.target.value) || null)}
                     className="w-full px-3 py-2 border rounded-lg bg-white"
                   >
-                    <option value="">-- Välj mall --</option>
+                    <option value="">-- Select template --</option>
                     {descriptionTemplates.map(t => (
                       <option key={t.id} value={t.id}>{t.name}</option>
                     ))}
@@ -896,7 +896,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                   <textarea
                     value={formData.manual_description}
                     onChange={(e) => handleChange('manual_description', e.target.value)}
-                    placeholder="Skriv din fasta description här..."
+                    placeholder="Write your fixed description here..."
                     rows={4}
                     className="w-full px-3 py-2 border rounded-lg"
                   />
@@ -907,14 +907,14 @@ export default function PresetEditor({ preset, onSave, onClose }) {
             {/* Default Tags */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Standard-taggar (tryck Enter för att lägga till, max 13)
+                Default Tags (press Enter to add, max 13)
               </label>
               <input
                 type="text"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={handleAddTag}
-                placeholder="Skriv en tagg..."
+                placeholder="Type a tag..."
                 className="w-full px-3 py-2 border rounded-lg"
               />
               {formData.default_tags.length > 0 && (
@@ -944,7 +944,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
             >
               {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              Avancerade inställningar
+              Advanced Settings
             </button>
 
             {showAdvanced && (
@@ -953,7 +953,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                 <div className="bg-yellow-50 rounded-lg p-4">
                   <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-yellow-600" />
-                    Personalisering
+                    Personalization
                   </h3>
                   <label className="flex items-center gap-2 cursor-pointer mb-3">
                     <input
@@ -962,7 +962,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                       onChange={(e) => handleChange('is_personalizable', e.target.checked)}
                       className="w-4 h-4 rounded text-etsy-orange"
                     />
-                    <span className="text-sm text-gray-700">Denna produkt kan personaliseras</span>
+                    <span className="text-sm text-gray-700">This product can be personalized</span>
                   </label>
                   
                   {formData.is_personalizable && (
@@ -974,10 +974,10 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                           onChange={(e) => handleChange('personalization_is_required', e.target.checked)}
                           className="w-4 h-4 rounded"
                         />
-                        <span className="text-sm text-gray-600">Personalisering krävs</span>
+                        <span className="text-sm text-gray-600">Personalization required</span>
                       </label>
                       <div>
-                        <label className="block text-sm text-gray-600 mb-1">Max antal tecken</label>
+                        <label className="block text-sm text-gray-600 mb-1">Max characters</label>
                         <input
                           type="number"
                           min="1"
@@ -988,11 +988,11 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-gray-600 mb-1">Instruktioner till köpare</label>
+                        <label className="block text-sm text-gray-600 mb-1">Instructions to buyer</label>
                         <textarea
                           value={formData.personalization_instructions}
                           onChange={(e) => handleChange('personalization_instructions', e.target.value)}
-                          placeholder="t.ex. Ange önskat namn"
+                          placeholder="e.g. Enter desired name"
                           rows={2}
                           className="w-full px-3 py-2 border rounded-lg"
                         />
@@ -1004,10 +1004,10 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                 {/* Physical dimensions */}
                 {isPhysical && (
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="font-medium text-gray-900 mb-3">Fysiska mått</h3>
+                    <h3 className="font-medium text-gray-900 mb-3">Physical Dimensions</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       <div>
-                        <label className="block text-sm text-gray-600 mb-1">Vikt</label>
+                        <label className="block text-sm text-gray-600 mb-1">Weight</label>
                         <div className="flex gap-1">
                           <input
                             type="number"
@@ -1029,7 +1029,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm text-gray-600 mb-1">Längd</label>
+                        <label className="block text-sm text-gray-600 mb-1">Length</label>
                         <input
                           type="number"
                           min="0"
@@ -1040,7 +1040,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-gray-600 mb-1">Bredd</label>
+                        <label className="block text-sm text-gray-600 mb-1">Width</label>
                         <input
                           type="number"
                           min="0"
@@ -1051,7 +1051,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-gray-600 mb-1">Höjd</label>
+                        <label className="block text-sm text-gray-600 mb-1">Height</label>
                         <input
                           type="number"
                           min="0"
@@ -1079,14 +1079,14 @@ export default function PresetEditor({ preset, onSave, onClose }) {
                 {/* Materials */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Material (tryck Enter för att lägga till)
+                    Materials (press Enter to add)
                   </label>
                   <input
                     type="text"
                     value={materialInput}
                     onChange={(e) => setMaterialInput(e.target.value)}
                     onKeyDown={handleAddMaterial}
-                    placeholder="t.ex. Canvas, Ink"
+                    placeholder="e.g. Canvas, Ink"
                     className="w-full px-3 py-2 border rounded-lg"
                   />
                   {formData.materials.length > 0 && (
@@ -1119,7 +1119,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
             onClick={onClose}
             className="px-4 py-2 text-gray-600 hover:text-gray-800"
           >
-            Avbryt
+            Cancel
           </button>
           <button
             onClick={handleSave}
@@ -1131,7 +1131,7 @@ export default function PresetEditor({ preset, onSave, onClose }) {
             ) : (
               <Save className="w-4 h-4" />
             )}
-            {saving ? 'Sparar...' : 'Spara preset'}
+            {saving ? 'Saving...' : 'Save Preset'}
           </button>
         </div>
       </div>

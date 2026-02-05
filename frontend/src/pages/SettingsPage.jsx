@@ -78,7 +78,7 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     if (isDemoMode) {
-      setMessage({ type: 'success', text: 'Demo: Inställningar skulle sparas här!' })
+      setMessage({ type: 'success', text: 'Demo: Settings would be saved here!' })
       return
     }
     
@@ -87,9 +87,9 @@ export default function SettingsPage() {
     
     try {
       await api.saveSettings(settings)
-      setMessage({ type: 'success', text: 'Inställningar sparade!' })
+      setMessage({ type: 'success', text: 'Settings saved!' })
     } catch (error) {
-      setMessage({ type: 'error', text: error.message || 'Kunde inte spara inställningar' })
+      setMessage({ type: 'error', text: error.message || 'Could not save settings' })
     } finally {
       setSaving(false)
     }
@@ -110,27 +110,27 @@ export default function SettingsPage() {
     try {
       if (editingPreset) {
         await api.updatePreset(editingPreset.id, presetData)
-        setMessage({ type: 'success', text: 'Preset uppdaterad!' })
+        setMessage({ type: 'success', text: 'Preset updated!' })
       } else {
         await api.createPreset(presetData)
-        setMessage({ type: 'success', text: 'Preset skapad!' })
+        setMessage({ type: 'success', text: 'Preset created!' })
       }
       setShowPresetEditor(false)
       const updatedPresets = await api.getPresets()
       setPresets(updatedPresets)
     } catch (error) {
-      setMessage({ type: 'error', text: error.message || 'Kunde inte spara preset' })
+      setMessage({ type: 'error', text: error.message || 'Could not save preset' })
     }
   }
 
   const handleDeletePreset = async (presetId) => {
-    if (!confirm('Är du säker på att du vill ta bort denna preset?')) return
+    if (!confirm('Are you sure you want to delete this preset?')) return
     try {
       await api.deletePreset(presetId)
       setPresets(presets.filter(p => p.id !== presetId))
-      setMessage({ type: 'success', text: 'Preset borttagen' })
+      setMessage({ type: 'success', text: 'Preset deleted' })
     } catch (error) {
-      setMessage({ type: 'error', text: error.message || 'Kunde inte ta bort preset' })
+      setMessage({ type: 'error', text: error.message || 'Could not delete preset' })
     }
   }
 
@@ -149,27 +149,27 @@ export default function SettingsPage() {
     try {
       if (editingTemplate) {
         await api.updateDescriptionTemplate(editingTemplate.id, templateData)
-        setMessage({ type: 'success', text: 'Mall uppdaterad!' })
+        setMessage({ type: 'success', text: 'Template updated!' })
       } else {
         await api.createDescriptionTemplate(templateData)
-        setMessage({ type: 'success', text: 'Mall skapad!' })
+        setMessage({ type: 'success', text: 'Template created!' })
       }
       setShowTemplateEditor(false)
       const updatedTemplates = await api.getDescriptionTemplates()
       setDescriptionTemplates(updatedTemplates)
     } catch (error) {
-      setMessage({ type: 'error', text: error.message || 'Kunde inte spara mall' })
+      setMessage({ type: 'error', text: error.message || 'Could not save template' })
     }
   }
 
   const handleDeleteTemplate = async (templateId) => {
-    if (!confirm('Är du säker på att du vill ta bort denna mall?')) return
+    if (!confirm('Are you sure you want to delete this template?')) return
     try {
       await api.deleteDescriptionTemplate(templateId)
       setDescriptionTemplates(descriptionTemplates.filter(t => t.id !== templateId))
-      setMessage({ type: 'success', text: 'Mall borttagen' })
+      setMessage({ type: 'success', text: 'Template deleted' })
     } catch (error) {
-      setMessage({ type: 'error', text: error.message || 'Kunde inte ta bort mall' })
+      setMessage({ type: 'error', text: error.message || 'Could not delete template' })
     }
   }
 
@@ -186,10 +186,10 @@ export default function SettingsPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
           <Settings className="w-8 h-8 text-etsy-orange" />
-          Inställningar
+          Settings
         </h1>
         <p className="text-gray-600 mt-2">
-          Hantera din Etsy-anslutning och standardinställningar
+          Manage your Etsy connection and default settings
         </p>
       </div>
 
@@ -215,8 +215,8 @@ export default function SettingsPage() {
               <Store className="w-5 h-5 text-etsy-orange" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Etsy-konto</h2>
-              <p className="text-sm text-gray-500">Ditt anslutna Etsy-konto</p>
+              <h2 className="text-lg font-semibold text-gray-900">Etsy Account</h2>
+              <p className="text-sm text-gray-500">Your connected Etsy account</p>
             </div>
           </div>
         </div>
@@ -229,9 +229,9 @@ export default function SettingsPage() {
                 <CheckCircle className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="font-medium text-green-800">Ansluten till Etsy</p>
+                <p className="font-medium text-green-800">Connected to Etsy</p>
                 <p className="text-sm text-green-600">
-                  {etsyStatus.shop?.shop_name || 'Din butik'}
+                  {etsyStatus.shop?.shop_name || 'Your shop'}
                 </p>
               </div>
             </div>
@@ -242,7 +242,7 @@ export default function SettingsPage() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 text-sm text-green-700 hover:text-green-900"
               >
-                Visa butik
+                View shop
                 <ExternalLink className="w-4 h-4" />
               </a>
             )}
@@ -253,20 +253,20 @@ export default function SettingsPage() {
         {etsyStatus.shop && (
           <div className="grid grid-cols-2 gap-4 text-sm mt-4">
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-gray-500">Butiks-ID</p>
+              <p className="text-gray-500">Shop ID</p>
               <p className="font-medium text-gray-900">{etsyStatus.shop.shop_id}</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
               <p className="text-gray-500">Token status</p>
               <p className={`font-medium ${etsyStatus.shop.is_valid ? 'text-green-600' : 'text-red-600'}`}>
-                {etsyStatus.shop.is_valid ? 'Giltig' : 'Utgången - Logga in igen'}
+                {etsyStatus.shop.is_valid ? 'Valid' : 'Expired - Log in again'}
               </p>
             </div>
           </div>
         )}
 
         <p className="text-xs text-gray-400 mt-4">
-          För att byta Etsy-konto, logga ut och logga in med ett annat Etsy-konto.
+          To switch Etsy account, log out and log in with a different Etsy account.
         </p>
       </div>
 
@@ -277,15 +277,15 @@ export default function SettingsPage() {
             <Settings className="w-5 h-5 text-gray-600" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Standardinställningar</h2>
-            <p className="text-sm text-gray-500">Används som standard för nya listings</p>
+            <h2 className="text-lg font-semibold text-gray-900">Default Settings</h2>
+            <p className="text-sm text-gray-500">Used as default for new listings</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Standardpris (USD)
+              Default Price (USD)
             </label>
             <input
               type="number"
@@ -299,7 +299,7 @@ export default function SettingsPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Standardkvantitet
+              Default Quantity
             </label>
             <input
               type="number"
@@ -319,7 +319,7 @@ export default function SettingsPage() {
                 className="w-5 h-5 rounded border-gray-300 text-etsy-orange focus:ring-etsy-orange"
               />
               <span className="text-sm font-medium text-gray-700">
-                Auto-förnya listings
+                Auto-renew listings
               </span>
             </label>
           </div>
@@ -334,8 +334,8 @@ export default function SettingsPage() {
               <Package className="w-5 h-5 text-etsy-orange" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Listing-presets</h2>
-              <p className="text-sm text-gray-500">Spara standardvärden för olika produkttyper</p>
+              <h2 className="text-lg font-semibold text-gray-900">Listing Presets</h2>
+              <p className="text-sm text-gray-500">Save default values for different product types</p>
             </div>
           </div>
           <button
@@ -343,16 +343,16 @@ export default function SettingsPage() {
             className="flex items-center gap-2 px-4 py-2 bg-etsy-orange text-white rounded-lg hover:bg-etsy-orange/90 transition-colors text-sm font-medium"
           >
             <Plus className="w-4 h-4" />
-            Ny preset
+            New Preset
           </button>
         </div>
 
         {presets.length === 0 ? (
           <div className="text-center py-8 bg-gray-50 rounded-lg">
             <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">Inga presets ännu</p>
+            <p className="text-gray-500">No presets yet</p>
             <p className="text-sm text-gray-400 mt-1">
-              Skapa en preset för att snabbt applicera inställningar vid uppladdning
+              Create a preset to quickly apply settings during upload
             </p>
           </div>
         ) : (
@@ -379,21 +379,21 @@ export default function SettingsPage() {
                   <button
                     onClick={() => setPreviewPreset(preset)}
                     className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    title="Förhandsgranska"
+                    title="Preview"
                   >
                     <Eye className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleEditPreset(preset)}
                     className="p-2 text-gray-400 hover:text-etsy-orange hover:bg-etsy-orange/10 rounded-lg transition-colors"
-                    title="Redigera"
+                    title="Edit"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDeletePreset(preset.id)}
                     className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Ta bort"
+                    title="Delete"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -412,8 +412,8 @@ export default function SettingsPage() {
               <FileText className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Description-mallar</h2>
-              <p className="text-sm text-gray-500">Skapa återanvändbara beskrivningsmallar med variabler</p>
+              <h2 className="text-lg font-semibold text-gray-900">Description Templates</h2>
+              <p className="text-sm text-gray-500">Create reusable description templates with variables</p>
             </div>
           </div>
           <button
@@ -421,16 +421,16 @@ export default function SettingsPage() {
             className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
           >
             <Plus className="w-4 h-4" />
-            Ny mall
+            New Template
           </button>
         </div>
 
         {descriptionTemplates.length === 0 ? (
           <div className="text-center py-8 bg-gray-50 rounded-lg">
             <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">Inga mallar ännu</p>
+            <p className="text-gray-500">No templates yet</p>
             <p className="text-sm text-gray-400 mt-1">
-              Skapa en mall för att använda istället för AI-genererade beskrivningar
+              Create a template to use instead of AI-generated descriptions
             </p>
           </div>
         ) : (
@@ -450,14 +450,14 @@ export default function SettingsPage() {
                   <button
                     onClick={() => handleEditTemplate(template)}
                     className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                    title="Redigera"
+                    title="Edit"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDeleteTemplate(template.id)}
                     className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Ta bort"
+                    title="Delete"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -480,7 +480,7 @@ export default function SettingsPage() {
           ) : (
             <Save className="w-5 h-5" />
           )}
-          {saving ? 'Sparar...' : 'Spara inställningar'}
+          {saving ? 'Saving...' : 'Save Settings'}
         </button>
       </div>
 

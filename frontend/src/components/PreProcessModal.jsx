@@ -14,16 +14,16 @@ const FALLBACK_CATEGORIES = [
 
 // Fallback shipping profiles when API fails or not connected
 const FALLBACK_SHIPPING_PROFILES = [
-  { shipping_profile_id: 'digital', title: 'Digital nedladdning (ingen frakt)' },
-  { shipping_profile_id: 'standard', title: 'Standardfrakt Sverige' },
-  { shipping_profile_id: 'international', title: 'Internationell frakt' }
+  { shipping_profile_id: 'digital', title: 'Digital download (no shipping)' },
+  { shipping_profile_id: 'standard', title: 'Standard shipping' },
+  { shipping_profile_id: 'international', title: 'International shipping' }
 ]
 
 // Fallback return policies
 const FALLBACK_RETURN_POLICIES = [
-  { return_policy_id: 'no_returns', label: 'Inga returer (digitala produkter)' },
-  { return_policy_id: '14_days', label: '14 dagars returrätt' },
-  { return_policy_id: '30_days', label: '30 dagars returrätt' }
+  { return_policy_id: 'no_returns', label: 'No returns (digital products)' },
+  { return_policy_id: '14_days', label: '14 days return' },
+  { return_policy_id: '30_days', label: '30 days return' }
 ]
 
 function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
@@ -129,7 +129,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
         }
       } catch (err) {
         console.error('Failed to fetch Etsy data:', err)
-        setLoadError('Kunde inte hämta data från Etsy. Använder standardvärden.')
+        setLoadError('Could not fetch data from Etsy. Using default values.')
         // Use fallbacks on error
         setShippingProfiles(FALLBACK_SHIPPING_PROFILES)
         setCategories(FALLBACK_CATEGORIES)
@@ -171,8 +171,8 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
               <Settings className="w-5 h-5 text-etsy-orange" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-800">Standardinställningar</h2>
-              <p className="text-sm text-gray-500">{productCount} produkter kommer att bearbetas</p>
+              <h2 className="text-lg font-semibold text-gray-800">Default Settings</h2>
+              <p className="text-sm text-gray-500">{productCount} products will be processed</p>
             </div>
           </div>
           <button 
@@ -189,7 +189,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
           {isLoading && (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-6 h-6 text-etsy-orange animate-spin" />
-              <span className="ml-2 text-gray-600">Hämtar data från Etsy...</span>
+              <span className="ml-2 text-gray-600">Fetching data from Etsy...</span>
             </div>
           )}
           
@@ -206,7 +206,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
             <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <AlertCircle className="w-5 h-5 text-blue-600" />
               <span className="text-sm text-blue-700">
-                Etsy ej ansluten. Anslut på inställningssidan för att hämta dina profiler.
+                Etsy not connected. Connect on the settings page to fetch your profiles.
               </span>
             </div>
           )}
@@ -216,8 +216,8 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
             <div className="bg-gradient-to-r from-etsy-orange/5 to-orange-50 rounded-xl p-4 border border-etsy-orange/20">
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 <Package className="w-4 h-4 text-etsy-orange" />
-                Välj en sparad preset
-                <span className="text-xs text-gray-400 ml-auto">(Valfritt)</span>
+                Choose a saved preset
+                <span className="text-xs text-gray-400 ml-auto">(Optional)</span>
               </label>
               <div className="flex gap-2">
                 <select
@@ -247,7 +247,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                   }}
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent"
                 >
-                  <option value="">-- Ingen preset (manuella inställningar) --</option>
+                  <option value="">-- No preset (manual settings) --</option>
                   {presets.map(preset => (
                     <option key={preset.id} value={preset.id}>
                       {preset.name} - ${preset.price?.toFixed(2)} ({preset.listing_type})
@@ -261,14 +261,14 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                       if (preset) setPreviewPreset(preset)
                     }}
                     className="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-600"
-                    title="Förhandsgranska preset"
+                    title="Preview preset"
                   >
                     <Eye className="w-5 h-5" />
                   </button>
                 )}
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Presets skapas i Inställningar och innehåller alla Etsy-fält
+                Presets are created in Settings and contain all Etsy fields
               </p>
             </div>
           )}
@@ -278,7 +278,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
                 <FileText className="w-4 h-4" />
-                Beskrivningskälla
+                Description Source
               </label>
               <div className="grid grid-cols-3 gap-2">
                 <button
@@ -291,7 +291,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                   }`}
                 >
                   <Sparkles className="w-5 h-5 mx-auto mb-1" />
-                  <span className="text-xs font-medium">AI-genererad</span>
+                  <span className="text-xs font-medium">AI-generated</span>
                 </button>
                 <button
                   type="button"
@@ -306,7 +306,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                   }`}
                 >
                   <FileText className="w-5 h-5 mx-auto mb-1" />
-                  <span className="text-xs font-medium">Mall</span>
+                  <span className="text-xs font-medium">Template</span>
                 </button>
                 <button
                   type="button"
@@ -318,7 +318,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                   }`}
                 >
                   <Type className="w-5 h-5 mx-auto mb-1" />
-                  <span className="text-xs font-medium">Egen text</span>
+                  <span className="text-xs font-medium">Custom text</span>
                 </button>
               </div>
               
@@ -329,7 +329,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                   onChange={(e) => setSettings(s => ({ ...s, descriptionTemplateId: e.target.value ? parseInt(e.target.value) : null }))}
                   className="w-full mt-3 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
-                  <option value="">-- Välj mall --</option>
+                  <option value="">-- Select template --</option>
                   {descriptionTemplates.map(t => (
                     <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
@@ -341,7 +341,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                 <textarea
                   value={settings.manualDescription}
                   onChange={(e) => setSettings(s => ({ ...s, manualDescription: e.target.value }))}
-                  placeholder="Skriv din beskrivning här... Använd {{title}} för produktnamn"
+                  placeholder="Write your description here... Use {{title}} for product name"
                   rows={4}
                   className="w-full mt-3 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 />
@@ -352,38 +352,38 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
           {/* Quantity */}
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-              Antal i lager
+              Quantity in stock
             </label>
             <input
               type="number"
               min="1"
               value={settings.quantity}
               onChange={(e) => setSettings(s => ({ ...s, quantity: e.target.value }))}
-              placeholder="T.Ex. 10"
+              placeholder="e.g. 10"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent"
             />
-            <p className="text-xs text-gray-400 mt-1">Hur många exemplar som finns tillgängliga för försäljning</p>
+            <p className="text-xs text-gray-400 mt-1">How many items are available for sale</p>
           </div>
 
           {/* Materials */}
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-              Material
+              Materials
             </label>
             <input
               type="text"
               value={settings.materials}
               onChange={(e) => setSettings(s => ({ ...s, materials: e.target.value }))}
-              placeholder="T.ex. bomull, polyester, trä"
+              placeholder="e.g. cotton, polyester, wood"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent"
             />
-            <p className="text-xs text-gray-400 mt-1">Ange material, separerade med kommatecken</p>
+            <p className="text-xs text-gray-400 mt-1">Enter materials, separated by commas</p>
           </div>
 
           {/* Expanded Shipping Options */}
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-              Mer detaljerad frakt (valfritt)
+              Detailed shipping (optional)
             </label>
             <div className="flex gap-2 mb-2">
               <input
@@ -391,42 +391,42 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                 min="0"
                 value={settings.shippingCost}
                 onChange={(e) => setSettings(s => ({ ...s, shippingCost: e.target.value }))}
-                placeholder="Fraktkostnad (SEK)"
+                placeholder="Shipping cost (USD)"
                 className="w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent"
               />
               <input
                 type="text"
                 value={settings.shippingTime}
                 onChange={(e) => setSettings(s => ({ ...s, shippingTime: e.target.value }))}
-                placeholder="Leveranstid (t.ex. 1-3 dagar)"
+                placeholder="Delivery time (e.g. 1-3 days)"
                 className="w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent"
               />
             </div>
-            <p className="text-xs text-gray-400">Lämna tomt för att använda standardprofil</p>
+            <p className="text-xs text-gray-400">Leave empty to use default profile</p>
           </div>
           
           {/* Default Price */}
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
               <DollarSign className="w-4 h-4" />
-              Standardpris (SEK)
+              Default Price (USD)
             </label>
             <input
               type="number"
               value={settings.defaultPrice}
               onChange={(e) => setSettings(s => ({ ...s, defaultPrice: e.target.value }))}
-              placeholder="T.ex. 49"
+              placeholder="e.g. 49"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent"
             />
-            <p className="text-xs text-gray-400 mt-1">Lämna tomt för att ställa in per produkt</p>
+            <p className="text-xs text-gray-400 mt-1">Leave empty to set per product</p>
           </div>
           
           {/* Category */}
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
               <Tag className="w-4 h-4" />
-              Kategori
-              {etsyConnected && <span className="text-xs text-green-600">(från Etsy)</span>}
+              Category
+              {etsyConnected && <span className="text-xs text-green-600">(from Etsy)</span>}
             </label>
             <select
               value={settings.category}
@@ -451,9 +451,9 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
               <Truck className="w-4 h-4" />
-              Fraktprofil
+              Shipping Profile
               {etsyConnected && shippingProfiles.length > 0 && shippingProfiles[0].shipping_profile_id !== 'digital' && (
-                <span className="text-xs text-green-600">(från din Etsy-butik)</span>
+                <span className="text-xs text-green-600">(from your Etsy shop)</span>
               )}
             </label>
             <select
@@ -481,9 +481,9 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
               <RotateCcw className="w-4 h-4" />
-              Returpolicy
+              Return Policy
               {etsyConnected && returnPolicies.length > 0 && returnPolicies[0].return_policy_id !== 'no_returns' && (
-                <span className="text-xs text-green-600">(från din Etsy-butik)</span>
+                <span className="text-xs text-green-600">(from your Etsy shop)</span>
               )}
             </label>
             <select
@@ -516,7 +516,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                 onChange={(e) => setSettings(s => ({ ...s, saveAsTemplate: e.target.checked }))}
                 className="w-5 h-5 text-etsy-orange rounded focus:ring-etsy-orange"
               />
-              <span className="text-sm font-medium text-gray-700">Spara som mall för framtida uppladdningar</span>
+              <span className="text-sm font-medium text-gray-700">Save as template for future uploads</span>
             </label>
             
             {settings.saveAsTemplate && (
@@ -524,7 +524,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                 type="text"
                 value={settings.templateName}
                 onChange={(e) => setSettings(s => ({ ...s, templateName: e.target.value }))}
-                placeholder="Mallnamn, t.ex. 'Mockup Standard'"
+                placeholder="Template name, e.g. 'Mockup Standard'"
                 className="w-full mt-3 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-etsy-orange focus:border-transparent"
               />
             )}
@@ -537,13 +537,13 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
             onClick={onClose}
             className="flex-1 px-4 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition-colors"
           >
-            Hoppa över
+            Skip
           </button>
           <button
             onClick={handleConfirm}
             className="flex-1 px-4 py-3 bg-etsy-orange text-white rounded-lg font-medium hover:bg-etsy-orange-dark transition-colors"
           >
-            Tillämpa & Fortsätt
+            Apply & Continue
           </button>
         </div>
       </div>

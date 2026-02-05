@@ -7,7 +7,7 @@ function DashboardPage({ uploads }) {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-2">Dashboard</h1>
         <p className="text-gray-600">
-          Överblick över dina uppladdningar och schemalagda publiceringar.
+          Overview of your uploads and scheduled publications.
         </p>
       </div>
       

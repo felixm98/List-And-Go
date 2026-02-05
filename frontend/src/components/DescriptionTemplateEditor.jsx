@@ -3,11 +3,11 @@ import { X, Save, Loader2, FileText, Eye, AlertCircle, Info } from 'lucide-react
 import { api } from '../services/api'
 
 const AVAILABLE_VARIABLES = [
-  { name: 'title', description: 'Listningens titel' },
-  { name: 'filename', description: 'Filnamnet på bilden' },
-  { name: 'preset_name', description: 'Namnet på vald preset' },
-  { name: 'date', description: 'Dagens datum' },
-  { name: 'price', description: 'Produktens pris' }
+  { name: 'title', description: 'The listing title' },
+  { name: 'filename', description: 'The image filename' },
+  { name: 'preset_name', description: 'Name of selected preset' },
+  { name: 'date', description: 'Today\'s date' },
+  { name: 'price', description: 'Product price' }
 ]
 
 export default function DescriptionTemplateEditor({ template, onSave, onClose }) {
@@ -72,11 +72,11 @@ export default function DescriptionTemplateEditor({ template, onSave, onClose })
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      setError('Mallnamn krävs')
+      setError('Template name is required')
       return
     }
     if (!formData.content.trim()) {
-      setError('Mallinnehåll krävs')
+      setError('Template content is required')
       return
     }
 
@@ -91,7 +91,7 @@ export default function DescriptionTemplateEditor({ template, onSave, onClose })
       }
       onSave()
     } catch (err) {
-      setError(err.message || 'Kunde inte spara mall')
+      setError(err.message || 'Could not save template')
     } finally {
       setSaving(false)
     }
@@ -104,7 +104,7 @@ export default function DescriptionTemplateEditor({ template, onSave, onClose })
         <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-purple-500 to-purple-600">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <FileText className="w-6 h-6" />
-            {template ? 'Redigera Description-mall' : 'Skapa ny Description-mall'}
+            {template ? 'Edit Description Template' : 'Create New Description Template'}
           </h2>
           <button onClick={onClose} className="text-white/80 hover:text-white">
             <X className="w-6 h-6" />
@@ -124,13 +124,13 @@ export default function DescriptionTemplateEditor({ template, onSave, onClose })
             {/* Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mallnamn *
+                Template Name *
               </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
-                placeholder="t.ex. POD Standard Mall"
+                placeholder="e.g. POD Standard Template"
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500/50"
               />
             </div>
@@ -139,7 +139,7 @@ export default function DescriptionTemplateEditor({ template, onSave, onClose })
             <div className="bg-blue-50 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Info className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-800">Tillgängliga variabler</span>
+                <span className="text-sm font-medium text-blue-800">Available Variables</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {AVAILABLE_VARIABLES.map(v => (
@@ -154,14 +154,14 @@ export default function DescriptionTemplateEditor({ template, onSave, onClose })
                 ))}
               </div>
               <p className="text-xs text-blue-600 mt-2">
-                Klicka på en variabel för att infoga den vid markörens position
+                Click on a variable to insert it at cursor position
               </p>
             </div>
 
             {/* Content */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mallinnehåll *
+                Template Content *
               </label>
               <textarea
                 id="template-content"
@@ -192,14 +192,14 @@ Thank you for visiting!`}
               className="flex items-center gap-2 px-4 py-2 border border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50"
             >
               <Eye className="w-4 h-4" />
-              Förhandsgranska
+              Preview
             </button>
 
             {/* Preview Modal */}
             {showPreview && (
               <div className="bg-gray-50 rounded-lg p-4 border">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Förhandsgranskning</span>
+                  <span className="text-sm font-medium text-gray-700">Preview</span>
                   <button
                     onClick={() => setShowPreview(false)}
                     className="text-gray-400 hover:text-gray-600"
@@ -211,7 +211,7 @@ Thank you for visiting!`}
                   {previewContent}
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  * Variabler har ersatts med exempelvärden
+                  * Variables have been replaced with example values
                 </p>
               </div>
             )}
@@ -224,7 +224,7 @@ Thank you for visiting!`}
             onClick={onClose}
             className="px-4 py-2 text-gray-600 hover:text-gray-800"
           >
-            Avbryt
+            Cancel
           </button>
           <button
             onClick={handleSave}
@@ -236,7 +236,7 @@ Thank you for visiting!`}
             ) : (
               <Save className="w-4 h-4" />
             )}
-            {saving ? 'Sparar...' : 'Spara mall'}
+            {saving ? 'Saving...' : 'Save Template'}
           </button>
         </div>
       </div>

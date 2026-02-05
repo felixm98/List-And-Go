@@ -13,7 +13,7 @@ function SchedulePicker({ isOpen, onClose, onConfirm, listingCount }) {
       onConfirm(null)
     } else {
       if (!date) {
-        alert('Välj ett datum')
+        alert('Select a date')
         return
       }
       const scheduledDate = new Date(`${date}T${time}`)
@@ -26,10 +26,10 @@ function SchedulePicker({ isOpen, onClose, onConfirm, listingCount }) {
   
   // Suggested times for best visibility
   const suggestedTimes = [
-    { time: '09:00', label: 'Morgon (09:00)', description: 'Bra för europeisk publik' },
-    { time: '15:00', label: 'Eftermiddag (15:00)', description: 'USA vaknar' },
-    { time: '18:00', label: 'Kväll (18:00)', description: 'Högtrafik, rekommenderad' },
-    { time: '21:00', label: 'Sen kväll (21:00)', description: 'Bra för USA västkust' }
+    { time: '09:00', label: 'Morning (09:00)', description: 'Good for European audience' },
+    { time: '15:00', label: 'Afternoon (15:00)', description: 'USA wakes up' },
+    { time: '18:00', label: 'Evening (18:00)', description: 'Peak traffic, recommended' },
+    { time: '21:00', label: 'Late evening (21:00)', description: 'Good for US West Coast' }
   ]
   
   return (
@@ -42,8 +42,8 @@ function SchedulePicker({ isOpen, onClose, onConfirm, listingCount }) {
               <Calendar className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-800">Schemalägg publicering</h2>
-              <p className="text-sm text-gray-500">{listingCount} produkter</p>
+              <h2 className="text-lg font-semibold text-gray-800">Schedule Publishing</h2>
+              <p className="text-sm text-gray-500">{listingCount} products</p>
             </div>
           </div>
           <button 
@@ -69,8 +69,8 @@ function SchedulePicker({ isOpen, onClose, onConfirm, listingCount }) {
               `}
             >
               <Zap className={`w-5 h-5 mb-2 ${scheduleType === 'now' ? 'text-etsy-orange' : 'text-gray-400'}`} />
-              <p className="font-medium text-gray-800">Ladda upp nu</p>
-              <p className="text-xs text-gray-500 mt-1">Skapar drafts direkt</p>
+              <p className="font-medium text-gray-800">Upload now</p>
+              <p className="text-xs text-gray-500 mt-1">Creates drafts immediately</p>
             </button>
             
             <button
@@ -84,8 +84,8 @@ function SchedulePicker({ isOpen, onClose, onConfirm, listingCount }) {
               `}
             >
               <Clock className={`w-5 h-5 mb-2 ${scheduleType === 'scheduled' ? 'text-etsy-orange' : 'text-gray-400'}`} />
-              <p className="font-medium text-gray-800">Schemalägg</p>
-              <p className="text-xs text-gray-500 mt-1">Välj datum & tid</p>
+              <p className="font-medium text-gray-800">Schedule</p>
+              <p className="text-xs text-gray-500 mt-1">Choose date & time</p>
             </button>
           </div>
           
@@ -94,7 +94,7 @@ function SchedulePicker({ isOpen, onClose, onConfirm, listingCount }) {
             <div className="space-y-4 animate-in slide-in-from-top-2">
               {/* Date */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Datum</label>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Date</label>
                 <input
                   type="date"
                   value={date}
@@ -106,7 +106,7 @@ function SchedulePicker({ isOpen, onClose, onConfirm, listingCount }) {
               
               {/* Time suggestions */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Tid</label>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Time</label>
                 <div className="grid grid-cols-2 gap-2">
                   {suggestedTimes.map(({ time: t, label, description }) => (
                     <button
@@ -141,8 +141,8 @@ function SchedulePicker({ isOpen, onClose, onConfirm, listingCount }) {
               {date && (
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <p className="text-sm text-blue-700">
-                    <strong>Publiceras:</strong>{' '}
-                    {new Date(`${date}T${time}`).toLocaleString('sv-SE', {
+                    <strong>Publishes:</strong>{' '}
+                    {new Date(`${date}T${time}`).toLocaleString('en-US', {
                       weekday: 'long',
                       year: 'numeric',
                       month: 'long',
@@ -163,13 +163,13 @@ function SchedulePicker({ isOpen, onClose, onConfirm, listingCount }) {
             onClick={onClose}
             className="flex-1 px-4 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition-colors"
           >
-            Avbryt
+            Cancel
           </button>
           <button
             onClick={handleConfirm}
             className="flex-1 px-4 py-3 bg-etsy-orange text-white rounded-lg font-medium hover:bg-etsy-orange-dark transition-colors"
           >
-            {scheduleType === 'now' ? 'Ladda upp nu' : 'Schemalägg'}
+            {scheduleType === 'now' ? 'Upload now' : 'Schedule'}
           </button>
         </div>
       </div>

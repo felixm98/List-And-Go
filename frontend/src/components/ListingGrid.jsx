@@ -57,10 +57,10 @@ function ListingGrid({ listings, onUpdate, onRemove, onUpload, onClear }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="text-xl font-semibold text-gray-800">
-            {listings.length} {listings.length === 1 ? 'produkt' : 'produkter'} redo
+            {listings.length} {listings.length === 1 ? 'product' : 'products'} ready
           </h2>
           <p className="text-sm text-gray-500">
-            Genomsnittlig SEO-poäng: <span className={`font-semibold ${getSeoColor(averageSeoScore)}`}>{averageSeoScore}</span>
+            Average SEO score: <span className={`font-semibold ${getSeoColor(averageSeoScore)}`}>{averageSeoScore}</span>
           </p>
         </div>
         
@@ -86,7 +86,7 @@ function ListingGrid({ listings, onUpdate, onRemove, onUpload, onClear }) {
             onClick={selectAll}
             className="btn-secondary text-sm"
           >
-            {selectedListings.size === listings.length ? 'Avmarkera alla' : 'Välj alla'}
+            {selectedListings.size === listings.length ? 'Deselect all' : 'Select all'}
           </button>
         </div>
       </div>
@@ -130,8 +130,8 @@ function ListingGrid({ listings, onUpdate, onRemove, onUpload, onClear }) {
         <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-sm text-gray-600">
             {selectedListings.size > 0 
-              ? `${selectedListings.size} av ${listings.length} valda`
-              : `${listings.length} produkter`
+              ? `${selectedListings.size} of ${listings.length} selected`
+              : `${listings.length} products`
             }
           </div>
           
@@ -141,7 +141,7 @@ function ListingGrid({ listings, onUpdate, onRemove, onUpload, onClear }) {
               className="btn-secondary flex items-center gap-2"
             >
               <Trash2 className="w-4 h-4" />
-              Rensa alla
+              Clear all
             </button>
             
             <button
@@ -149,7 +149,7 @@ function ListingGrid({ listings, onUpdate, onRemove, onUpload, onClear }) {
               className="btn-secondary flex items-center gap-2"
             >
               <Calendar className="w-4 h-4" />
-              Schemalägg
+              Schedule
             </button>
             
             <button
@@ -157,7 +157,7 @@ function ListingGrid({ listings, onUpdate, onRemove, onUpload, onClear }) {
               className="btn-primary flex items-center gap-2"
             >
               <Upload className="w-4 h-4" />
-              Ladda upp till Etsy
+              Upload to Etsy
             </button>
           </div>
         </div>

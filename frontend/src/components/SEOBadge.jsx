@@ -6,15 +6,15 @@ function SEOBadge({ score }) {
   if (score >= 80) {
     colorClass = 'seo-excellent'
     Icon = TrendingUp
-    label = 'Utmärkt'
+    label = 'Excellent'
   } else if (score >= 60) {
     colorClass = 'seo-good'
     Icon = Minus
-    label = 'Bra'
+    label = 'Good'
   } else {
     colorClass = 'seo-poor'
     Icon = TrendingDown
-    label = 'Förbättra'
+    label = 'Improve'
   }
   
   return (

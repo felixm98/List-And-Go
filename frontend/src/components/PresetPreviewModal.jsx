@@ -1,9 +1,9 @@
 import { X, Package, DollarSign, Truck, RotateCcw, Sparkles, FileText, Tag, Clock } from 'lucide-react'
 
 const WHO_MADE_LABELS = {
-  'i_did': 'Jag gjorde det',
-  'someone_else': 'Någon annan',
-  'collective': 'Ett kollektiv'
+  'i_did': 'I did',
+  'someone_else': 'Someone else',
+  'collective': 'A collective'
 }
 
 const WHEN_MADE_LABELS = {
@@ -11,13 +11,13 @@ const WHEN_MADE_LABELS = {
   '2020_2026': '2020-2026',
   '2010_2019': '2010-2019',
   '2007_2009': '2007-2009',
-  'before_2007': 'Före 2007'
+  'before_2007': 'Before 2007'
 }
 
 const TYPE_LABELS = {
-  'download': 'Digital nedladdning',
-  'physical': 'Fysisk produkt',
-  'both': 'Båda (digital + fysisk)'
+  'download': 'Digital download',
+  'physical': 'Physical product',
+  'both': 'Both (digital + physical)'
 }
 
 export default function PresetPreviewModal({ preset, onClose, onEdit }) {
@@ -57,15 +57,15 @@ export default function PresetPreviewModal({ preset, onClose, onEdit }) {
             <div className="bg-green-50 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <DollarSign className="w-5 h-5 text-green-600" />
-                <span className="font-medium text-gray-900">Pris & Kvantitet</span>
+                <span className="font-medium text-gray-900">Price & Quantity</span>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-sm text-gray-500">Pris</span>
+                  <span className="text-sm text-gray-500">Price</span>
                   <p className="font-semibold text-gray-900">${preset.price?.toFixed(2)}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-500">Kvantitet</span>
+                  <span className="text-sm text-gray-500">Quantity</span>
                   <p className="font-semibold text-gray-900">{preset.quantity}</p>
                 </div>
               </div>
@@ -75,24 +75,24 @@ export default function PresetPreviewModal({ preset, onClose, onEdit }) {
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Tag className="w-5 h-5 text-gray-600" />
-                <span className="font-medium text-gray-900">Detaljer</span>
+                <span className="font-medium text-gray-900">Details</span>
               </div>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <span className="text-gray-500">Vem gjorde</span>
+                  <span className="text-gray-500">Who made</span>
                   <p className="font-medium">{WHO_MADE_LABELS[preset.who_made] || preset.who_made}</p>
                 </div>
                 <div>
-                  <span className="text-gray-500">När gjord</span>
+                  <span className="text-gray-500">When made</span>
                   <p className="font-medium">{WHEN_MADE_LABELS[preset.when_made] || preset.when_made}</p>
                 </div>
                 <div>
-                  <span className="text-gray-500">Är supply</span>
-                  <p className="font-medium">{preset.is_supply ? 'Ja' : 'Nej'}</p>
+                  <span className="text-gray-500">Is supply</span>
+                  <p className="font-medium">{preset.is_supply ? 'Yes' : 'No'}</p>
                 </div>
                 <div>
-                  <span className="text-gray-500">Auto-förnya</span>
-                  <p className="font-medium">{preset.should_auto_renew ? '✓ Ja' : '✗ Nej'}</p>
+                  <span className="text-gray-500">Auto-renew</span>
+                  <p className="font-medium">{preset.should_auto_renew ? '✓ Yes' : '✗ No'}</p>
                 </div>
               </div>
             </div>
@@ -102,16 +102,16 @@ export default function PresetPreviewModal({ preset, onClose, onEdit }) {
               <div className="bg-blue-50 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Truck className="w-5 h-5 text-blue-600" />
-                  <span className="font-medium text-gray-900">Frakt & Returer</span>
+                  <span className="font-medium text-gray-900">Shipping & Returns</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <span className="text-gray-500">Fraktprofil</span>
-                    <p className="font-medium">{preset.shipping_profile_id || 'Ej vald'}</p>
+                    <span className="text-gray-500">Shipping profile</span>
+                    <p className="font-medium">{preset.shipping_profile_id || 'Not selected'}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500">Returpolicy</span>
-                    <p className="font-medium">{preset.return_policy_id || 'Ej vald'}</p>
+                    <span className="text-gray-500">Return policy</span>
+                    <p className="font-medium">{preset.return_policy_id || 'Not selected'}</p>
                   </div>
                 </div>
               </div>
@@ -125,16 +125,16 @@ export default function PresetPreviewModal({ preset, onClose, onEdit }) {
               </div>
               <div className="text-sm">
                 {preset.description_source === 'ai' && (
-                  <p className="text-purple-700">🤖 AI-genererad per bild</p>
+                  <p className="text-purple-700">🤖 AI-generated per image</p>
                 )}
                 {preset.description_source === 'template' && (
-                  <p className="text-purple-700">📝 Mall: {preset.description_template_name || 'Ej vald'}</p>
+                  <p className="text-purple-700">📝 Template: {preset.description_template_name || 'Not selected'}</p>
                 )}
                 {preset.description_source === 'manual' && (
                   <div>
-                    <p className="text-purple-700 mb-1">✍️ Fast text:</p>
+                    <p className="text-purple-700 mb-1">✍️ Fixed text:</p>
                     <p className="text-gray-600 text-xs bg-white rounded p-2 max-h-20 overflow-y-auto">
-                      {preset.manual_description || 'Ingen text'}
+                      {preset.manual_description || 'No text'}
                     </p>
                   </div>
                 )}
@@ -146,20 +146,20 @@ export default function PresetPreviewModal({ preset, onClose, onEdit }) {
               <div className="bg-yellow-50 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Sparkles className="w-5 h-5 text-yellow-600" />
-                  <span className="font-medium text-gray-900">Personalisering</span>
+                  <span className="font-medium text-gray-900">Personalization</span>
                 </div>
                 <div className="text-sm space-y-1">
                   <p>
-                    <span className="text-gray-500">Krävs:</span>{' '}
-                    <span className="font-medium">{preset.personalization_is_required ? 'Ja' : 'Nej'}</span>
+                    <span className="text-gray-500">Required:</span>{' '}
+                    <span className="font-medium">{preset.personalization_is_required ? 'Yes' : 'No'}</span>
                   </p>
                   <p>
-                    <span className="text-gray-500">Max tecken:</span>{' '}
+                    <span className="text-gray-500">Max characters:</span>{' '}
                     <span className="font-medium">{preset.personalization_char_count_max}</span>
                   </p>
                   {preset.personalization_instructions && (
                     <p>
-                      <span className="text-gray-500">Instruktioner:</span>{' '}
+                      <span className="text-gray-500">Instructions:</span>{' '}
                       <span className="font-medium">{preset.personalization_instructions}</span>
                     </p>
                   )}
@@ -170,7 +170,7 @@ export default function PresetPreviewModal({ preset, onClose, onEdit }) {
             {/* Default Tags */}
             {preset.default_tags?.length > 0 && (
               <div>
-                <span className="text-sm font-medium text-gray-700">Standard-taggar:</span>
+                <span className="text-sm font-medium text-gray-700">Default tags:</span>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {preset.default_tags.map(tag => (
                     <span 
@@ -188,7 +188,7 @@ export default function PresetPreviewModal({ preset, onClose, onEdit }) {
             <div className="bg-gray-100 rounded-lg p-3 text-sm text-gray-600">
               <p className="flex items-center gap-2">
                 <span className="text-lg">⚠️</span>
-                <span>Title, Tags och Description (om AI valt) genereras automatiskt per bild vid uppladdning</span>
+                <span>Title, Tags and Description (if AI selected) are automatically generated per image during upload</span>
               </p>
             </div>
           </div>
@@ -200,7 +200,7 @@ export default function PresetPreviewModal({ preset, onClose, onEdit }) {
             onClick={onClose}
             className="px-4 py-2 text-gray-600 hover:text-gray-800"
           >
-            Stäng
+            Close
           </button>
           {onEdit && (
             <button
@@ -210,7 +210,7 @@ export default function PresetPreviewModal({ preset, onClose, onEdit }) {
               }}
               className="px-4 py-2 bg-etsy-orange text-white rounded-lg hover:bg-etsy-orange/90"
             >
-              Redigera preset
+              Edit preset
             </button>
           )}
         </div>

@@ -124,7 +124,7 @@ function DropZone({ onFilesProcessed, isProcessing, setIsProcessing, showPreProc
     const products = processFiles(acceptedFiles)
     
     if (products.length === 0) {
-      alert('Inga bilder hittades i de uppladdade mapparna.')
+      alert('No images found in the uploaded folders.')
       return
     }
     
@@ -214,10 +214,10 @@ function DropZone({ onFilesProcessed, isProcessing, setIsProcessing, showPreProc
         <div className="flex flex-col items-center">
           <Loader2 className="w-16 h-16 text-etsy-orange animate-spin mb-4" />
           <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            Analyserar mockups med AI...
+            Analyzing mockups with AI...
           </h3>
           <p className="text-gray-500">
-            Genererar titlar, tags och beskrivningar
+            Generating titles, tags and descriptions
           </p>
         </div>
       ) : (
@@ -235,17 +235,17 @@ function DropZone({ onFilesProcessed, isProcessing, setIsProcessing, showPreProc
           </div>
           
           <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            {isDragActive ? 'Släpp mapparna här!' : 'Dra och släpp mockup-mappar'}
+            {isDragActive ? 'Drop folders here!' : 'Drag and drop mockup folders'}
           </h3>
           
           <p className="text-gray-500 mb-4">
-            eller <span className="text-etsy-orange font-medium">klicka för att välja mappar</span>
+            or <span className="text-etsy-orange font-medium">click to select folders</span>
           </p>
           
           <div className="flex items-center justify-center gap-6 text-sm text-gray-400">
             <div className="flex items-center gap-2">
               <FolderOpen className="w-4 h-4" />
-              <span>En mapp = En produkt</span>
+              <span>One folder = One product</span>
             </div>
             <div className="flex items-center gap-2">
               <Image className="w-4 h-4" />
@@ -254,7 +254,7 @@ function DropZone({ onFilesProcessed, isProcessing, setIsProcessing, showPreProc
           </div>
           
           <div className="mt-6 p-4 bg-blue-50 rounded-lg text-sm text-blue-700">
-            <strong>Tips:</strong> Om du drar in en mapp med undermappar kommer varje undermapp att bli en separat produkt.
+            <strong>Tip:</strong> If you drag in a folder with subfolders, each subfolder will become a separate product.
           </div>
         </>
       )}

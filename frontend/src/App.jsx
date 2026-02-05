@@ -95,15 +95,15 @@ function App() {
         <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2">
           <div className="container mx-auto flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">🎭 Demoläge</span>
-              <span className="text-sm opacity-90">– Du utforskar appen utan inloggning. Vissa funktioner är begränsade.</span>
+              <span className="text-sm font-medium">🎭 Demo Mode</span>
+              <span className="text-sm opacity-90">– You are exploring the app without logging in. Some features are limited.</span>
             </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => { handleExitDemo(); }}
                 className="text-sm underline hover:no-underline"
               >
-                Tillbaka till inloggning
+                Back to login
               </button>
             </div>
           </div>

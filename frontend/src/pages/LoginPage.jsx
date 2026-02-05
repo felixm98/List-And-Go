@@ -15,10 +15,10 @@ export default function LoginPage({ onEnterDemo }) {
     const errorParam = params.get('error')
     if (errorParam) {
       const errorMessages = {
-        'missing_params': 'Inloggning avbruten - försök igen',
-        'invalid_state': 'Ogiltigt tillstånd - försök igen',
-        'no_shop': 'Du måste ha en Etsy-butik för att använda appen',
-        'auth_failed': 'Autentiseringen misslyckades - försök igen'
+        'missing_params': 'Login cancelled - please try again',
+        'invalid_state': 'Invalid state - please try again',
+        'no_shop': 'You need an Etsy shop to use this app',
+        'auth_failed': 'Authentication failed - please try again'
       }
       setError(errorMessages[errorParam] || errorParam)
     }
@@ -32,7 +32,7 @@ export default function LoginPage({ onEnterDemo }) {
       const authUrl = await api.loginWithEtsy()
       window.location.href = authUrl
     } catch (err) {
-      setError(err.message || 'Kunde inte ansluta till Etsy')
+      setError(err.message || 'Could not connect to Etsy')
       setLoading(false)
     }
   }
@@ -47,23 +47,23 @@ export default function LoginPage({ onEnterDemo }) {
   const steps = [
     {
       icon: Upload,
-      title: 'Ladda upp mappar',
-      description: 'Dra och släpp mappar med produktbilder. Varje mapp blir en listing.'
+      title: 'Upload folders',
+      description: 'Drag and drop folders with product images. Each folder becomes a listing.'
     },
     {
       icon: Sparkles,
-      title: 'AI genererar innehåll',
-      description: 'Vår AI analyserar bilderna och skapar titlar, beskrivningar och tags.'
+      title: 'AI generates content',
+      description: 'Our AI analyzes images and creates titles, descriptions, and tags.'
     },
     {
       icon: Clock,
-      title: 'Schemalägg eller publicera',
-      description: 'Välj att publicera direkt eller schemalägg för optimal tidpunkt.'
+      title: 'Schedule or publish',
+      description: 'Choose to publish immediately or schedule for optimal timing.'
     },
     {
       icon: CheckCircle,
-      title: 'Klart!',
-      description: 'Dina listings skapas automatiskt på Etsy som utkast eller publicerade.'
+      title: 'Done!',
+      description: 'Your listings are automatically created on Etsy as drafts or published.'
     }
   ]
 
@@ -82,7 +82,7 @@ export default function LoginPage({ onEnterDemo }) {
               List-And-Go
             </h1>
             <p className="text-gray-500">
-              Massuppladdning för Etsy
+              Bulk Upload for Etsy
             </p>
           </div>
 
@@ -103,14 +103,14 @@ export default function LoginPage({ onEnterDemo }) {
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Ansluter till Etsy...
+                Connecting to Etsy...
               </>
             ) : (
               <>
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8.559 3C6.226 3 4.5 5.226 4.5 8.559v6.882c0 3.333 1.726 5.559 4.059 5.559h6.882c3.333 0 5.559-1.726 5.559-4.059v-.882c0-.691-.559-1.25-1.25-1.25s-1.25.559-1.25 1.25v.882c0 .833-.676 1.559-3.059 1.559H8.559c-.833 0-1.559-.676-1.559-3.059V8.559c0-.833.676-1.559 3.059-1.559h6.882c.691 0 1.25-.559 1.25-1.25S17.632 4.5 16.941 4.5H8.559C5.226 4.5 3 6.726 3 10.059v6.882C3 20.274 5.226 22.5 8.559 22.5h6.882c3.333 0 5.559-2.226 5.559-5.559v-6.882C21 6.726 18.774 4.5 15.441 4.5"/>
                 </svg>
-                Logga in med Etsy
+                Login with Etsy
               </>
             )}
           </button>
@@ -118,14 +118,14 @@ export default function LoginPage({ onEnterDemo }) {
           {/* Info */}
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-500">
-              Du kommer att dirigeras till Etsy för att auktorisera appen.
+              You will be redirected to Etsy to authorize the app.
             </p>
           </div>
 
           {/* Divider */}
           <div className="flex items-center gap-4 my-6">
             <div className="flex-1 h-px bg-gray-200"></div>
-            <span className="text-sm text-gray-400">eller</span>
+            <span className="text-sm text-gray-400">or</span>
             <div className="flex-1 h-px bg-gray-200"></div>
           </div>
 
@@ -135,10 +135,10 @@ export default function LoginPage({ onEnterDemo }) {
             className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
           >
             <Eye className="w-5 h-5" />
-            Utforska appen utan att logga in
+            Explore the app without logging in
           </button>
           <p className="text-xs text-gray-400 text-center mt-2">
-            Se gränssnittet och funktionerna i demoläge
+            View the interface and features in demo mode
           </p>
         </div>
 
@@ -152,7 +152,7 @@ export default function LoginPage({ onEnterDemo }) {
               <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-etsy-orange" />
               </div>
-              <span className="text-lg font-semibold text-gray-900">Hur fungerar det?</span>
+              <span className="text-lg font-semibold text-gray-900">How does it work?</span>
             </div>
             {showHowItWorks ? (
               <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -193,20 +193,20 @@ export default function LoginPage({ onEnterDemo }) {
               {/* Features highlight */}
               <div className="mt-6 pt-6 border-t grid grid-cols-2 gap-4">
                 <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
-                  <h4 className="font-medium text-purple-900 mb-1">🤖 AI-genererat</h4>
-                  <p className="text-xs text-purple-700">Titlar, beskrivningar och tags skapas automatiskt</p>
+                  <h4 className="font-medium text-purple-900 mb-1">🤖 AI-Generated</h4>
+                  <p className="text-xs text-purple-700">Titles, descriptions and tags created automatically</p>
                 </div>
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
-                  <h4 className="font-medium text-blue-900 mb-1">📁 Bulk-uppladdning</h4>
-                  <p className="text-xs text-blue-700">Ladda upp hundratals produkter på minuter</p>
+                  <h4 className="font-medium text-blue-900 mb-1">📁 Bulk Upload</h4>
+                  <p className="text-xs text-blue-700">Upload hundreds of products in minutes</p>
                 </div>
                 <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
-                  <h4 className="font-medium text-green-900 mb-1">⏰ Schemaläggning</h4>
-                  <p className="text-xs text-green-700">Publicera på optimal tidpunkt</p>
+                  <h4 className="font-medium text-green-900 mb-1">⏰ Scheduling</h4>
+                  <p className="text-xs text-green-700">Publish at optimal times</p>
                 </div>
                 <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4">
-                  <h4 className="font-medium text-amber-900 mb-1">📊 SEO-optimerat</h4>
-                  <p className="text-xs text-amber-700">Maximera synlighet på Etsy</p>
+                  <h4 className="font-medium text-amber-900 mb-1">📊 SEO-Optimized</h4>
+                  <p className="text-xs text-amber-700">Maximize visibility on Etsy</p>
                 </div>
               </div>
             </div>

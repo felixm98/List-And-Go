@@ -8,22 +8,22 @@ const STATUS_CONFIG = {
   },
   scheduled: {
     icon: Calendar,
-    label: 'Schemalagd',
+    label: 'Scheduled',
     color: 'text-blue-600 bg-blue-100'
   },
   uploading: {
     icon: Clock,
-    label: 'Laddar upp...',
+    label: 'Uploading...',
     color: 'text-yellow-600 bg-yellow-100'
   },
   published: {
     icon: CheckCircle,
-    label: 'Publicerad',
+    label: 'Published',
     color: 'text-green-600 bg-green-100'
   },
   failed: {
     icon: AlertCircle,
-    label: 'Misslyckades',
+    label: 'Failed',
     color: 'text-red-600 bg-red-100'
   }
 }
@@ -42,7 +42,7 @@ function Dashboard({ uploads }) {
   }
   
   const formatDate = (date) => {
-    return new Date(date).toLocaleString('sv-SE', {
+    return new Date(date).toLocaleString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -57,9 +57,9 @@ function Dashboard({ uploads }) {
         <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Upload className="w-10 h-10 text-gray-400" />
         </div>
-        <h3 className="text-lg font-medium text-gray-700 mb-2">Inga uppladdningar ännu</h3>
+        <h3 className="text-lg font-medium text-gray-700 mb-2">No uploads yet</h3>
         <p className="text-gray-500">
-          Dina uppladdade produkter kommer att visas här.
+          Your uploaded products will appear here.
         </p>
       </div>
     )
@@ -70,23 +70,23 @@ function Dashboard({ uploads }) {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-xl p-4 border">
-          <p className="text-sm text-gray-500">Totalt</p>
+          <p className="text-sm text-gray-500">Total</p>
           <p className="text-2xl font-bold text-gray-800">{uploads.length}</p>
         </div>
         <div className="bg-white rounded-xl p-4 border">
-          <p className="text-sm text-gray-500">Publicerade</p>
+          <p className="text-sm text-gray-500">Published</p>
           <p className="text-2xl font-bold text-green-600">
             {uploads.filter(u => u.status === 'published').length}
           </p>
         </div>
         <div className="bg-white rounded-xl p-4 border">
-          <p className="text-sm text-gray-500">Schemalagda</p>
+          <p className="text-sm text-gray-500">Scheduled</p>
           <p className="text-2xl font-bold text-blue-600">
             {uploads.filter(u => u.status === 'scheduled').length}
           </p>
         </div>
         <div className="bg-white rounded-xl p-4 border">
-          <p className="text-sm text-gray-500">Misslyckade</p>
+          <p className="text-sm text-gray-500">Failed</p>
           <p className="text-2xl font-bold text-red-600">
             {uploads.filter(u => u.status === 'failed').length}
           </p>
@@ -96,7 +96,7 @@ function Dashboard({ uploads }) {
       {/* Upload List */}
       <div className="bg-white rounded-xl border overflow-hidden">
         <div className="px-6 py-4 border-b bg-gray-50">
-          <h3 className="font-semibold text-gray-800">Uppladdningshistorik</h3>
+          <h3 className="font-semibold text-gray-800">Upload History</h3>
         </div>
         
         <div className="divide-y">
@@ -117,7 +117,7 @@ function Dashboard({ uploads }) {
                     <h4 className="font-medium text-gray-800">{upload.title}</h4>
                     <div className="flex items-center gap-3 mt-1">
                       <span className="text-sm text-gray-500">
-                        {upload.imageCount} bilder
+                        {upload.imageCount} images
                       </span>
                       <span className="text-sm text-gray-500">
                         {formatDate(upload.createdAt)}
@@ -146,7 +146,7 @@ function Dashboard({ uploads }) {
               {upload.status === 'scheduled' && upload.scheduledFor && (
                 <div className="mt-3 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
                   <Calendar className="w-4 h-4 inline mr-2" />
-                  Publiceras {formatDate(upload.scheduledFor)}
+                  Publishes {formatDate(upload.scheduledFor)}
                 </div>
               )}
               
