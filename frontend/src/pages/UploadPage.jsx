@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import DropZone from '../components/DropZone'
-import PreProcessModal from '../components/PreProcessModal'
+import PresetSelector from '../components/PresetSelector'
 import ListingGrid from '../components/ListingGrid'
 import api from '../services/api'
 
 function UploadPage({ listings, addListings, updateListing, removeListing, clearListings, addUpload }) {
   const [isProcessing, setIsProcessing] = useState(false)
-  const [showPreProcess, setShowPreProcess] = useState(true) // Toggle for showing pre-process modal
   const [pendingProducts, setPendingProducts] = useState([])
   const [showModal, setShowModal] = useState(false)
   
@@ -19,11 +18,16 @@ function UploadPage({ listings, addListings, updateListing, removeListing, clear
     }
   }
   
-  const handlePreProcessConfirm = async (settings) => {
+  const handlePresetSelected = async (preset) => {
+    if (!preset) {
+      setShowModal(false)
+      return
+    }
+    
     setIsProcessing(true)
     setShowModal(false)
     
-    // Process products using real AI API
+    // Process products using real AI API with preset settings
     const processedProducts = await Promise.all(
       pendingProducts.map(async (product) => {
         try {
@@ -36,7 +40,7 @@ function UploadPage({ listings, addListings, updateListing, removeListing, clear
               imageFile,
               product.folderName,
               product.images.length,
-              settings.category || ''
+              preset.taxonomy_path || ''
             )
             
             // Extract styles from listing_attributes if available
@@ -46,50 +50,50 @@ function UploadPage({ listings, addListings, updateListing, removeListing, clear
             return {
               ...product,
               title: aiResult.title || `${product.folderName} | Digital Download`,
-              description: aiResult.description || '',
-              tags: aiResult.tags || [],
-              category: settings.category,
-              categoryId: settings.categoryId,
-              price: settings.defaultPrice || '',
-              shippingProfile: settings.shippingProfile,
-              shippingProfileId: settings.shippingProfileId,
-              shippingCost: settings.shippingCost,
-              shippingTime: settings.shippingTime,
-              returnPolicy: settings.returnPolicy,
-              returnPolicyId: settings.returnPolicyId,
-              quantity: settings.quantity || 999,
-              materials: aiResult.materials || settings.materials || '',
+              description: aiResult.description || preset.description || '',
+              tags: aiResult.tags || preset.tags?.split(',').map(t => t.trim()) || [],
+              category: preset.taxonomy_path,
+              categoryId: preset.taxonomy_id,
+              price: preset.price || '',
+              shippingProfile: preset.shipping_profile_name,
+              shippingProfileId: preset.shipping_profile_id,
+              returnPolicy: preset.return_policy_name,
+              returnPolicyId: preset.return_policy_id,
+              quantity: preset.quantity || 999,
+              materials: aiResult.materials || preset.materials || '',
               style: styleString,
               styles: styles,
               listing_attributes: aiResult.listing_attributes || {},
               seoScore: aiResult.seo_score || 75,
               status: 'ready',
-              videos: product.videos || []
+              videos: product.videos || [],
+              presetId: preset.id,
+              presetName: preset.name
             }
           } else {
             // Fallback if no image available
             return {
               ...product,
               title: `${product.folderName} | Digital Download`,
-              description: 'Digital download product',
-              tags: ['digital download'],
-              category: settings.category,
-              categoryId: settings.categoryId,
-              price: settings.defaultPrice || '',
-              shippingProfile: settings.shippingProfile,
-              shippingProfileId: settings.shippingProfileId,
-              shippingCost: settings.shippingCost,
-              shippingTime: settings.shippingTime,
-              returnPolicy: settings.returnPolicy,
-              returnPolicyId: settings.returnPolicyId,
-              quantity: settings.quantity || 999,
-              materials: settings.materials || '',
+              description: preset.description || 'Digital download product',
+              tags: preset.tags?.split(',').map(t => t.trim()) || ['digital download'],
+              category: preset.taxonomy_path,
+              categoryId: preset.taxonomy_id,
+              price: preset.price || '',
+              shippingProfile: preset.shipping_profile_name,
+              shippingProfileId: preset.shipping_profile_id,
+              returnPolicy: preset.return_policy_name,
+              returnPolicyId: preset.return_policy_id,
+              quantity: preset.quantity || 999,
+              materials: preset.materials || '',
               style: '',
               styles: [],
               listing_attributes: {},
               seoScore: 50,
               status: 'ready',
-              videos: product.videos || []
+              videos: product.videos || [],
+              presetId: preset.id,
+              presetName: preset.name
             }
           }
         } catch (error) {
@@ -98,26 +102,26 @@ function UploadPage({ listings, addListings, updateListing, removeListing, clear
           return {
             ...product,
             title: `${product.folderName} | Digital Download`,
-            description: 'Digital download product',
-            tags: ['digital download'],
-            category: settings.category,
-            categoryId: settings.categoryId,
-            price: settings.defaultPrice || '',
-            shippingProfile: settings.shippingProfile,
-            shippingProfileId: settings.shippingProfileId,
-            shippingCost: settings.shippingCost,
-            shippingTime: settings.shippingTime,
-            returnPolicy: settings.returnPolicy,
-            returnPolicyId: settings.returnPolicyId,
-            quantity: settings.quantity || 999,
-            materials: settings.materials || '',
+            description: preset.description || 'Digital download product',
+            tags: preset.tags?.split(',').map(t => t.trim()) || ['digital download'],
+            category: preset.taxonomy_path,
+            categoryId: preset.taxonomy_id,
+            price: preset.price || '',
+            shippingProfile: preset.shipping_profile_name,
+            shippingProfileId: preset.shipping_profile_id,
+            returnPolicy: preset.return_policy_name,
+            returnPolicyId: preset.return_policy_id,
+            quantity: preset.quantity || 999,
+            materials: preset.materials || '',
             style: '',
             styles: [],
             listing_attributes: {},
             seoScore: 50,
             status: 'error',
             error: error.message,
-            videos: product.videos || []
+            videos: product.videos || [],
+            presetId: preset.id,
+            presetName: preset.name
           }
         }
       })
@@ -241,25 +245,12 @@ function UploadPage({ listings, addListings, updateListing, removeListing, clear
         </p>
       </div>
       
-      {/* Pre-process toggle */}
-      <div className="flex items-center justify-end mb-4">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showPreProcess}
-            onChange={(e) => setShowPreProcess(e.target.checked)}
-            className="w-4 h-4 text-brand-primary rounded focus:ring-brand-primary"
-          />
-          <span className="text-sm text-gray-600">Show settings before processing</span>
-        </label>
-      </div>
-      
       {/* Drop Zone */}
       <DropZone
         onFilesProcessed={handleFilesProcessed}
         isProcessing={isProcessing}
         setIsProcessing={setIsProcessing}
-        showPreProcessModal={showPreProcess}
+        showPreProcessModal={true}
       />
       
       {/* Step-by-step guide */}
@@ -292,20 +283,14 @@ function UploadPage({ listings, addListings, updateListing, removeListing, clear
         </div>
       </div>
       
-      {/* Pre-Process Modal */}
-      <PreProcessModal
+      {/* Preset Selector Modal */}
+      <PresetSelector
         isOpen={showModal}
         onClose={() => {
           setShowModal(false)
-          // Process without settings
-          handlePreProcessConfirm({
-            defaultPrice: '',
-            category: 'Digital Downloads > Graphics > Mockups',
-            shippingProfile: 'digital',
-            returnPolicy: 'no_returns'
-          })
+          setPendingProducts([])
         }}
-        onConfirm={handlePreProcessConfirm}
+        onConfirm={handlePresetSelected}
         productCount={pendingProducts.length}
       />
       

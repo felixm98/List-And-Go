@@ -270,62 +270,6 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      {/* Default Settings Section */}
-      <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-            <Settings className="w-5 h-5 text-gray-600" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Default Settings</h2>
-            <p className="text-sm text-gray-500">Used as default for new listings</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Default Price (USD)
-            </label>
-            <input
-              type="number"
-              min="0.20"
-              step="0.01"
-              value={settings.default_price}
-              onChange={(e) => setSettings(prev => ({ ...prev, default_price: parseFloat(e.target.value) }))}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Default Quantity
-            </label>
-            <input
-              type="number"
-              min="1"
-              value={settings.default_quantity}
-              onChange={(e) => setSettings(prev => ({ ...prev, default_quantity: parseInt(e.target.value) }))}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary"
-            />
-          </div>
-
-          <div className="flex items-center">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.auto_renew}
-                onChange={(e) => setSettings(prev => ({ ...prev, auto_renew: e.target.checked }))}
-                className="w-5 h-5 rounded border-gray-300 text-brand-primary focus:ring-brand-primary"
-              />
-              <span className="text-sm font-medium text-gray-700">
-                Auto-renew listings
-              </span>
-            </label>
-          </div>
-        </div>
-      </div>
-
       {/* Listing Presets Section */}
       <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
