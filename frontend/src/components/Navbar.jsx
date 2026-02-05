@@ -1,12 +1,13 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Upload, LayoutDashboard, Settings, User, Link2, Link2Off } from 'lucide-react'
+import { Upload, LayoutDashboard, Settings, LogOut, Store } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import api from '../services/api'
 
-function Navbar({ listingsCount }) {
+function Navbar({ listingsCount, onLogout }) {
   const location = useLocation()
   const [etsyStatus, setEtsyStatus] = useState({ connected: false, shop: null })
   const [loading, setLoading] = useState(true)
+  const [shopName, setShopName] = useState(localStorage.getItem('shopName') || null)
 
   useEffect(() => {
     checkEtsyStatus()
@@ -16,6 +17,10 @@ function Navbar({ listingsCount }) {
     try {
       const status = await api.getEtsyStatus()
       setEtsyStatus(status)
+      if (status.shop?.shop_name) {
+        setShopName(status.shop.shop_name)
+        localStorage.setItem('shopName', status.shop.shop_name)
+      }
     } catch (err) {
       setEtsyStatus({ connected: false })
     } finally {
@@ -23,12 +28,9 @@ function Navbar({ listingsCount }) {
     }
   }
 
-  const handleConnectEtsy = async () => {
-    try {
-      const authUrl = await api.connectEtsy()
-      window.location.href = authUrl
-    } catch (err) {
-      alert('Kunde inte ansluta till Etsy: ' + err.message)
+  const handleLogout = () => {
+    if (confirm('Är du säker på att du vill logga ut?')) {
+      onLogout()
     }
   }
 
@@ -98,30 +100,28 @@ function Navbar({ listingsCount }) {
             </Link>
           </div>
 
-          {/* Right side */}
-          <div className="flex items-center gap-2">
-            {/* Etsy Connection Status */}
+          {/* Right side - Shop info and logout */}
+          <div className="flex items-center gap-3">
+            {/* Shop Name Display */}
             {loading ? (
               <div className="px-3 py-1.5 bg-gray-100 text-gray-500 rounded-full text-sm">
                 Laddar...
               </div>
-            ) : etsyStatus.connected ? (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                {etsyStatus.shop?.shop_name || 'Etsy ansluten'}
-              </div>
             ) : (
-              <button
-                onClick={handleConnectEtsy}
-                className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 text-etsy-orange rounded-full text-sm hover:bg-orange-100 transition-colors"
-              >
-                <Link2Off className="w-4 h-4" />
-                Anslut Etsy
-              </button>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-sm">
+                <Store className="w-4 h-4" />
+                <span className="font-medium">{shopName || etsyStatus.shop?.shop_name || 'Min butik'}</span>
+              </div>
             )}
 
-            <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-              <User className="w-5 h-5" />
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-3 py-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              title="Logga ut"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="text-sm">Logga ut</span>
             </button>
           </div>
         </div>

@@ -14,7 +14,7 @@ from sqlalchemy import inspect, text
 
 from config import config
 from models import db, User, Template, Upload, Listing, EtsyToken, ListingPreset, DescriptionTemplate
-from auth import auth_bp
+from auth import auth_bp, get_or_create_user_from_etsy, create_tokens_for_user
 from settings import settings_bp
 from ai_generator import generate_listing_content, regenerate_field, encode_image_bytes_to_base64
 from seo_scorer import calculate_seo_score
@@ -506,16 +506,20 @@ def get_seo_score():
     return jsonify(seo)
 
 
-# ============== Etsy OAuth Routes ==============
+# ============== Etsy OAuth Routes (Login) ==============
 
-@app.route('/api/etsy/connect', methods=['GET'])
-@jwt_required()
-def etsy_connect():
-    """Start Etsy OAuth flow"""
-    user_id = get_jwt_identity()
+@app.route('/api/etsy/login', methods=['GET'])
+def etsy_login():
+    """
+    Start Etsy OAuth flow for login.
+    This is the primary authentication method - users log in via Etsy.
+    """
+    import secrets
     
     try:
-        auth_url, verifier, state = get_authorization_url(state=str(user_id))
+        # Generate a random state for CSRF protection
+        state = secrets.token_urlsafe(32)
+        auth_url, verifier, _ = get_authorization_url(state=state)
         
         # Store verifier for callback (in production, use Redis with expiry)
         app.pkce_verifiers[state] = verifier
@@ -528,57 +532,76 @@ def etsy_connect():
 
 @app.route('/api/etsy/callback', methods=['GET'])
 def etsy_callback():
-    """Handle Etsy OAuth callback"""
+    """
+    Handle Etsy OAuth callback.
+    Creates/updates user based on Etsy shop and returns JWT tokens.
+    """
     code = request.args.get('code')
     state = request.args.get('state')
     error = request.args.get('error')
     
+    # Get frontend URL for redirects
+    frontend_url = os.environ.get('FRONTEND_URL', '')
+    
     if error:
-        return redirect(f'/etsy-error?error={error}')
+        return redirect(f'{frontend_url}/login?error={error}')
     
     if not code or not state:
-        return redirect('/etsy-error?error=missing_params')
+        return redirect(f'{frontend_url}/login?error=missing_params')
     
     # Get verifier
     verifier = app.pkce_verifiers.get(state)
     if not verifier:
-        return redirect('/etsy-error?error=invalid_state')
+        return redirect(f'{frontend_url}/login?error=invalid_state')
     
     try:
-        # Exchange code for tokens
+        # Exchange code for Etsy tokens
         tokens = exchange_code_for_tokens(code, verifier)
         
         # Clean up verifier
         del app.pkce_verifiers[state]
         
-        # Get user ID from state
-        user_id = int(state)
-        
-        # Get shop info
-        # Extract user_id from token (format: user_id.token)
+        # Get shop info from Etsy
         etsy_user_id = tokens['access_token'].split('.')[0]
         shop_info = get_shop_info(tokens['access_token'], etsy_user_id)
         
-        # Save or update token
-        etsy_token = EtsyToken.query.filter_by(user_id=user_id).first()
+        if not shop_info:
+            return redirect(f'{frontend_url}/login?error=no_shop')
+        
+        shop_id = str(shop_info['shop_id'])
+        shop_name = shop_info['shop_name']
+        
+        # Get or create user based on Etsy shop
+        user = get_or_create_user_from_etsy(shop_id, shop_name)
+        
+        # Save or update Etsy token
+        etsy_token = EtsyToken.query.filter_by(user_id=user.id).first()
         
         if not etsy_token:
-            etsy_token = EtsyToken(user_id=user_id)
+            etsy_token = EtsyToken(user_id=user.id)
             db.session.add(etsy_token)
         
         etsy_token.access_token_encrypted = encrypt_token(tokens['access_token'])
         etsy_token.refresh_token_encrypted = encrypt_token(tokens['refresh_token'])
         etsy_token.expires_at = datetime.utcnow() + timedelta(seconds=tokens['expires_in'])
-        etsy_token.shop_id = shop_info['shop_id'] if shop_info else None
-        etsy_token.shop_name = shop_info['shop_name'] if shop_info else None
+        etsy_token.shop_id = shop_id
+        etsy_token.shop_name = shop_name
         
         db.session.commit()
         
-        return redirect('/etsy-success')
+        # Create JWT tokens for the app
+        jwt_tokens = create_tokens_for_user(user)
+        
+        # Redirect to frontend with tokens
+        access = jwt_tokens['access_token']
+        refresh = jwt_tokens['refresh_token']
+        return redirect(f'{frontend_url}/auth-callback?access_token={access}&refresh_token={refresh}&shop_name={shop_name}')
         
     except Exception as e:
         print(f"Etsy callback error: {e}")
-        return redirect(f'/etsy-error?error={str(e)}')
+        import traceback
+        traceback.print_exc()
+        return redirect(f'{frontend_url}/login?error=auth_failed')
 
 
 @app.route('/api/etsy/status', methods=['GET'])

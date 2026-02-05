@@ -27,6 +27,8 @@ services:
         sync: false
       - key: FERNET_KEY
         sync: false
+      - key: FRONTEND_URL
+        value: https://etsy-uploader-frontend.onrender.com
     rootDir: backend
 
   # Frontend static site

@@ -106,28 +106,24 @@ class ApiService {
     }
   }
 
-  // Auth endpoints
-  async register(email, password) {
-    const data = await this.request('/api/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-      auth: false
-    })
-    this.setTokens(data.access_token, data.refresh_token)
-    return data
-  }
-
-  async login(email, password) {
-    const data = await this.request('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-      auth: false
-    })
-    this.setTokens(data.access_token, data.refresh_token)
-    return data
+  // ============== Etsy OAuth Login ==============
+  async loginWithEtsy() {
+    const response = await fetch(`${API_BASE}/api/etsy/login`)
+    const data = await response.json()
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Could not start login')
+    }
+    
+    return data.auth_url
   }
 
   async logout() {
+    try {
+      await this.request('/api/auth/logout', { method: 'POST' })
+    } catch (e) {
+      // Ignore errors during logout
+    }
     this.clearTokens()
   }
 
@@ -224,9 +220,9 @@ class ApiService {
     return this.request('/api/etsy/status')
   }
 
+  // connectEtsy is now loginWithEtsy - kept for backwards compatibility in settings
   async connectEtsy() {
-    const data = await this.request('/api/etsy/connect')
-    return data.auth_url
+    return this.loginWithEtsy()
   }
 
   async disconnectEtsy() {

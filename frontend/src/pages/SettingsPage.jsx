@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Settings, Link2, Link2Off, Store, Save, CheckCircle, AlertCircle, Loader2, ExternalLink, Package, Plus, Pencil, Trash2, FileText, Eye } from 'lucide-react'
+import { Settings, Store, Save, CheckCircle, AlertCircle, Loader2, ExternalLink, Package, Plus, Pencil, Trash2, FileText, Eye } from 'lucide-react'
 import { api } from '../services/api'
 import PresetEditor from '../components/PresetEditor'
 import DescriptionTemplateEditor from '../components/DescriptionTemplateEditor'
@@ -16,8 +16,6 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState(null)
   const [etsyStatus, setEtsyStatus] = useState({ connected: false, shop: null })
-  const [connecting, setConnecting] = useState(false)
-  const [disconnecting, setDisconnecting] = useState(false)
   
   // Preset & Template state
   const [presets, setPresets] = useState([])
@@ -68,34 +66,6 @@ export default function SettingsPage() {
       setMessage({ type: 'error', text: error.message || 'Kunde inte spara inställningar' })
     } finally {
       setSaving(false)
-    }
-  }
-
-  const handleConnectEtsy = async () => {
-    setConnecting(true)
-    try {
-      const authUrl = await api.connectEtsy()
-      window.location.href = authUrl
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Kunde inte ansluta till Etsy: ' + error.message })
-      setConnecting(false)
-    }
-  }
-
-  const handleDisconnectEtsy = async () => {
-    if (!confirm('Är du säker på att du vill koppla från ditt Etsy-konto?')) {
-      return
-    }
-    
-    setDisconnecting(true)
-    try {
-      await api.disconnectEtsy()
-      setEtsyStatus({ connected: false, shop: null })
-      setMessage({ type: 'success', text: 'Etsy-konto frånkopplat' })
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Kunde inte koppla från: ' + error.message })
-    } finally {
-      setDisconnecting(false)
     }
   }
 
@@ -220,111 +190,58 @@ export default function SettingsPage() {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Etsy-konto</h2>
-              <p className="text-sm text-gray-500">Anslut ditt Etsy-konto för att ladda upp listings</p>
+              <p className="text-sm text-gray-500">Ditt anslutna Etsy-konto</p>
             </div>
           </div>
         </div>
 
-        {etsyStatus.connected ? (
-          <div className="space-y-4">
-            {/* Connected State */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-green-800">Ansluten till Etsy</p>
-                    <p className="text-sm text-green-600">
-                      {etsyStatus.shop?.shop_name || 'Din butik'}
-                    </p>
-                  </div>
-                </div>
-                <a
-                  href={`https://www.etsy.com/shop/${etsyStatus.shop?.shop_name || ''}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-sm text-green-700 hover:text-green-900"
-                >
-                  Visa butik
-                  <ExternalLink className="w-4 h-4" />
-                </a>
+        {/* Connected State */}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="font-medium text-green-800">Ansluten till Etsy</p>
+                <p className="text-sm text-green-600">
+                  {etsyStatus.shop?.shop_name || 'Din butik'}
+                </p>
               </div>
             </div>
-
-            {/* Shop Info */}
-            {etsyStatus.shop && (
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-gray-500">Butiks-ID</p>
-                  <p className="font-medium text-gray-900">{etsyStatus.shop.shop_id}</p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-gray-500">Token status</p>
-                  <p className={`font-medium ${etsyStatus.shop.is_valid ? 'text-green-600' : 'text-red-600'}`}>
-                    {etsyStatus.shop.is_valid ? 'Giltig' : 'Utgången - Anslut igen'}
-                  </p>
-                </div>
-              </div>
+            {etsyStatus.shop?.shop_name && (
+              <a
+                href={`https://www.etsy.com/shop/${etsyStatus.shop.shop_name}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-sm text-green-700 hover:text-green-900"
+              >
+                Visa butik
+                <ExternalLink className="w-4 h-4" />
+              </a>
             )}
-
-            {/* Disconnect Button */}
-            <button
-              onClick={handleDisconnectEtsy}
-              disabled={disconnecting}
-              className="flex items-center gap-2 px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
-            >
-              {disconnecting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Link2Off className="w-4 h-4" />
-              )}
-              {disconnecting ? 'Kopplar från...' : 'Koppla från Etsy'}
-            </button>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {/* Not Connected State */}
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
-                <div>
-                  <p className="font-medium text-orange-800">Etsy ej anslutet</p>
-                  <p className="text-sm text-orange-600 mt-1">
-                    Du måste ansluta ditt Etsy-konto för att kunna ladda upp listings. 
-                    Klicka på knappen nedan för att logga in med Etsy.
-                  </p>
-                </div>
-              </div>
-            </div>
+        </div>
 
-            {/* How it works */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm font-medium text-blue-800 mb-2">Så här fungerar det:</p>
-              <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
-                <li>Klicka på "Anslut till Etsy" nedan</li>
-                <li>Logga in på ditt Etsy-konto</li>
-                <li>Godkänn att appen får hantera dina listings</li>
-                <li>Du omdirigeras tillbaka hit automatiskt</li>
-              </ol>
+        {/* Shop Info */}
+        {etsyStatus.shop && (
+          <div className="grid grid-cols-2 gap-4 text-sm mt-4">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-gray-500">Butiks-ID</p>
+              <p className="font-medium text-gray-900">{etsyStatus.shop.shop_id}</p>
             </div>
-
-            {/* Connect Button */}
-            <button
-              onClick={handleConnectEtsy}
-              disabled={connecting}
-              className="flex items-center gap-2 px-6 py-3 bg-etsy-orange text-white rounded-lg hover:bg-etsy-orange/90 transition-colors disabled:opacity-50 font-medium"
-            >
-              {connecting ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Link2 className="w-5 h-5" />
-              )}
-              {connecting ? 'Ansluter...' : 'Anslut till Etsy'}
-            </button>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-gray-500">Token status</p>
+              <p className={`font-medium ${etsyStatus.shop.is_valid ? 'text-green-600' : 'text-red-600'}`}>
+                {etsyStatus.shop.is_valid ? 'Giltig' : 'Utgången - Logga in igen'}
+              </p>
+            </div>
           </div>
         )}
+
+        <p className="text-xs text-gray-400 mt-4">
+          För att byta Etsy-konto, logga ut och logga in med ett annat Etsy-konto.
+        </p>
       </div>
 
       {/* Default Settings Section */}
