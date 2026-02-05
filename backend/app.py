@@ -38,13 +38,17 @@ def migrate_database(app):
         # Define columns to add for each table
         migrations = {
             'listing_presets': [
+                # Newer fields that might be missing
                 ('is_taxable', 'BOOLEAN DEFAULT 1'),
                 ('is_customizable', 'BOOLEAN DEFAULT 1'),
                 ('production_partner_ids', 'TEXT'),  # JSON stored as TEXT in SQLite
+                ('taxonomy_id', 'INTEGER'),
+                ('taxonomy_path', 'VARCHAR(500)'),
             ],
             'listings': [
                 ('styles', 'TEXT'),  # JSON stored as TEXT
                 ('listing_attributes', 'TEXT'),  # JSON stored as TEXT
+                ('taxonomy_id', 'INTEGER'),
             ]
         }
         
@@ -167,70 +171,76 @@ def get_presets():
 @jwt_required()
 def create_preset():
     """Create a new listing preset"""
-    user_id = get_jwt_identity()
-    data = request.get_json()
-    
-    preset = ListingPreset(
-        user_id=user_id,
-        name=data.get('name', 'Untitled Preset'),
-        preset_type=data.get('preset_type', 'digital'),
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
         
-        # Required fields
-        price=data.get('price', 4.99),
-        quantity=data.get('quantity', 999),
-        who_made=data.get('who_made', 'i_did'),
-        when_made=data.get('when_made', 'made_to_order'),
-        is_supply=data.get('is_supply', False),
-        taxonomy_id=data.get('taxonomy_id'),
-        taxonomy_path=data.get('taxonomy_path'),
-        listing_type=data.get('listing_type', 'download'),
+        preset = ListingPreset(
+            user_id=user_id,
+            name=data.get('name', 'Untitled Preset'),
+            preset_type=data.get('preset_type', 'digital'),
+            
+            # Required fields
+            price=data.get('price', 4.99),
+            quantity=data.get('quantity', 999),
+            who_made=data.get('who_made', 'i_did'),
+            when_made=data.get('when_made', 'made_to_order'),
+            is_supply=data.get('is_supply', False),
+            taxonomy_id=data.get('taxonomy_id'),
+            taxonomy_path=data.get('taxonomy_path'),
+            listing_type=data.get('listing_type', 'download'),
+            
+            # Shipping & Returns
+            shipping_profile_id=data.get('shipping_profile_id'),
+            return_policy_id=data.get('return_policy_id'),
+            
+            # Optional
+            shop_section_id=data.get('shop_section_id'),
+            should_auto_renew=data.get('should_auto_renew', True),
+            
+            # Tax & Customization
+            is_taxable=data.get('is_taxable', True),
+            is_customizable=data.get('is_customizable', True),
+            production_partner_ids=data.get('production_partner_ids'),
+            
+            # Personalization
+            is_personalizable=data.get('is_personalizable', False),
+            personalization_is_required=data.get('personalization_is_required', False),
+            personalization_char_count_max=data.get('personalization_char_count_max', 256),
+            personalization_instructions=data.get('personalization_instructions'),
+            
+            # Physical dimensions
+            item_weight=data.get('item_weight'),
+            item_weight_unit=data.get('item_weight_unit'),
+            item_length=data.get('item_length'),
+            item_width=data.get('item_width'),
+            item_height=data.get('item_height'),
+            item_dimensions_unit=data.get('item_dimensions_unit'),
+            
+            # Processing
+            processing_min=data.get('processing_min'),
+            processing_max=data.get('processing_max'),
+            
+            # Arrays
+            materials=data.get('materials'),
+            styles=data.get('styles'),
+            default_tags=data.get('default_tags'),
+            
+            # Description
+            description_source=data.get('description_source', 'ai'),
+            description_template_id=data.get('description_template_id'),
+            manual_description=data.get('manual_description')
+        )
         
-        # Shipping & Returns
-        shipping_profile_id=data.get('shipping_profile_id'),
-        return_policy_id=data.get('return_policy_id'),
+        db.session.add(preset)
+        db.session.commit()
         
-        # Optional
-        shop_section_id=data.get('shop_section_id'),
-        should_auto_renew=data.get('should_auto_renew', True),
-        
-        # Tax & Customization
-        is_taxable=data.get('is_taxable', True),
-        is_customizable=data.get('is_customizable', True),
-        production_partner_ids=data.get('production_partner_ids'),
-        
-        # Personalization
-        is_personalizable=data.get('is_personalizable', False),
-        personalization_is_required=data.get('personalization_is_required', False),
-        personalization_char_count_max=data.get('personalization_char_count_max', 256),
-        personalization_instructions=data.get('personalization_instructions'),
-        
-        # Physical dimensions
-        item_weight=data.get('item_weight'),
-        item_weight_unit=data.get('item_weight_unit'),
-        item_length=data.get('item_length'),
-        item_width=data.get('item_width'),
-        item_height=data.get('item_height'),
-        item_dimensions_unit=data.get('item_dimensions_unit'),
-        
-        # Processing
-        processing_min=data.get('processing_min'),
-        processing_max=data.get('processing_max'),
-        
-        # Arrays
-        materials=data.get('materials'),
-        styles=data.get('styles'),
-        default_tags=data.get('default_tags'),
-        
-        # Description
-        description_source=data.get('description_source', 'ai'),
-        description_template_id=data.get('description_template_id'),
-        manual_description=data.get('manual_description')
-    )
-    
-    db.session.add(preset)
-    db.session.commit()
-    
-    return jsonify(preset.to_dict()), 201
+        return jsonify(preset.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Failed to create preset: {str(e)}'}), 500
 
 
 @app.route('/api/presets/<int:preset_id>', methods=['GET'])
