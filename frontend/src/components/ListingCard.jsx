@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { X, Edit2, Trash2, ChevronDown, ChevronUp, Sparkles, Tag, Palette, Gift, Calendar, Heart } from 'lucide-react'
+import { X, Edit2, Trash2, ChevronDown, ChevronUp, Sparkles, Tag, Palette, Gift, Calendar, Heart, ChevronLeft, ChevronRight } from 'lucide-react'
 import SEOBadge from './SEOBadge'
 
 function ListingCard({ listing, onUpdate, onRemove }) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [showGallery, setShowGallery] = useState(false)
+  const [galleryIndex, setGalleryIndex] = useState(0)
   const [editData, setEditData] = useState({
     title: listing.title,
     description: listing.description,
@@ -55,25 +57,96 @@ function ListingCard({ listing, onUpdate, onRemove }) {
   
   const primaryImage = listing.images[0]
   
+  // Gallery navigation
+  const nextImage = () => setGalleryIndex((i) => (i + 1) % listing.images.length)
+  const prevImage = () => setGalleryIndex((i) => (i - 1 + listing.images.length) % listing.images.length)
+  
   return (
     <div className="listing-card bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
-      {/* Image Gallery */}
+      {/* Image Gallery Modal */}
+      {showGallery && (
+        <div 
+          className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center"
+          onClick={() => setShowGallery(false)}
+        >
+          <button
+            onClick={() => setShowGallery(false)}
+            className="absolute top-4 right-4 p-2 text-white hover:bg-white/20 rounded-full"
+          >
+            <X className="w-8 h-8" />
+          </button>
+          
+          {listing.images.length > 1 && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                className="absolute left-4 p-3 text-white hover:bg-white/20 rounded-full"
+              >
+                <ChevronLeft className="w-8 h-8" />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                className="absolute right-4 p-3 text-white hover:bg-white/20 rounded-full"
+              >
+                <ChevronRight className="w-8 h-8" />
+              </button>
+            </>
+          )}
+          
+          <div className="max-w-4xl max-h-[80vh] p-4" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={listing.images[galleryIndex]?.preview}
+              alt={`${listing.folderName} - Image ${galleryIndex + 1}`}
+              className="max-w-full max-h-[70vh] object-contain mx-auto rounded-lg"
+            />
+            <div className="text-center text-white mt-4">
+              <p className="text-lg font-medium">{listing.folderName}</p>
+              <p className="text-sm text-gray-300">Image {galleryIndex + 1} of {listing.images.length}</p>
+            </div>
+          </div>
+          
+          {/* Thumbnail strip */}
+          {listing.images.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 p-2 bg-black/50 rounded-lg">
+              {listing.images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={(e) => { e.stopPropagation(); setGalleryIndex(idx); }}
+                  className={`w-12 h-12 rounded overflow-hidden border-2 transition-all ${
+                    idx === galleryIndex ? 'border-white scale-110' : 'border-transparent opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <img src={img.preview} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Image Preview (Clickable) */}
       <div className="relative">
-        <div className="aspect-square bg-gray-100">
+        <div 
+          className="aspect-square bg-gray-100 cursor-pointer"
+          onClick={() => { setGalleryIndex(0); setShowGallery(true); }}
+        >
           {primaryImage && (
             <img
               src={primaryImage.preview}
               alt={listing.folderName}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover hover:opacity-90 transition-opacity"
             />
           )}
         </div>
         
-        {/* Image count badge */}
+        {/* Image count badge - clickable */}
         {listing.images.length > 1 && (
-          <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
+          <button
+            onClick={() => { setGalleryIndex(0); setShowGallery(true); }}
+            className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full hover:bg-opacity-90 transition-all"
+          >
             +{listing.images.length - 1} images
-          </div>
+          </button>
         )}
         
         {/* Actions */}
