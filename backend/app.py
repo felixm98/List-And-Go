@@ -28,6 +28,7 @@ from etsy_api import (
     delete_listing_image, update_listing
 )
 from scheduler import init_scheduler, schedule_publish, cancel_scheduled_publish, shutdown_scheduler
+from api_compliance import is_cache_stale, get_cache_age_info, get_compliance_status, get_rate_limiter
 
 import atexit
 
@@ -114,6 +115,44 @@ app = create_app(os.environ.get('FLASK_ENV', 'development'))
 @app.route('/')
 def index():
     return 'List-And-Go backend is running!'
+
+
+# ============== API Compliance Routes ==============
+
+@app.route('/api/compliance/status', methods=['GET'])
+@jwt_required()
+def get_api_compliance_status():
+    """
+    Get API compliance status including rate limits and cache freshness.
+    
+    This endpoint helps monitor compliance with Etsy API Terms:
+    - Section 2: Rate Limiting
+    - Section 5: Data Freshness
+    - Section 7: Security Notifications
+    """
+    user_id = get_jwt_identity()
+    
+    # Get rate limiter status
+    rate_limiter = get_rate_limiter()
+    rate_status = rate_limiter.get_status()
+    
+    # Get cache freshness for user's listings
+    from models import EtsyListing
+    oldest_listing = EtsyListing.query.filter_by(user_id=user_id).order_by(
+        EtsyListing.synced_at.asc()
+    ).first()
+    
+    cache_freshness = None
+    if oldest_listing and oldest_listing.synced_at:
+        cache_freshness = get_cache_age_info(oldest_listing.synced_at, is_listing=True)
+    
+    return jsonify({
+        'compliance': get_compliance_status(),
+        'current_status': {
+            'rate_limit': rate_status,
+            'cache_freshness': cache_freshness
+        }
+    })
 
 
 # ============== Template Routes ==============
@@ -1370,13 +1409,27 @@ def get_cached_listings():
     for s in ['active', 'draft', 'expired', 'inactive', 'sold_out']:
         state_counts[s] = EtsyListing.query.filter_by(user_id=user_id, state=s).count()
     
+    # Check cache freshness (Etsy API Terms Section 5: max 6 hours for listings)
+    oldest_sync = None
+    needs_refresh = False
+    for listing in listings:
+        if listing.synced_at:
+            if oldest_sync is None or listing.synced_at < oldest_sync:
+                oldest_sync = listing.synced_at
+            if is_cache_stale(listing.synced_at, is_listing=True):
+                needs_refresh = True
+    
+    cache_info = get_cache_age_info(oldest_sync, is_listing=True) if oldest_sync else None
+    
     return jsonify({
         'listings': [l.to_dict() for l in listings],
         'total': total,
         'page': page,
         'per_page': per_page,
         'total_pages': (total + per_page - 1) // per_page,
-        'state_counts': state_counts
+        'state_counts': state_counts,
+        'cache_info': cache_info,
+        'needs_refresh': needs_refresh
     })
 
 

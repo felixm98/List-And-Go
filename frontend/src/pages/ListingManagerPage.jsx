@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { 
   RefreshCw, Search, ChevronLeft, ChevronRight, 
   Loader2, CheckSquare, Square, Edit, Eye, ExternalLink,
-  Package, Image as ImageIcon, Tag, AlertCircle, Filter
+  Package, Image as ImageIcon, Tag, AlertCircle, Filter, Clock
 } from 'lucide-react'
 import { api } from '../services/api'
 import BulkEditModal from '../components/BulkEditModal'
@@ -37,8 +37,10 @@ export default function ListingManagerPage() {
   // Bulk edit modal
   const [showBulkEdit, setShowBulkEdit] = useState(false)
   
-  // Last sync time
+  // Last sync time and cache freshness
   const [lastSync, setLastSync] = useState(null)
+  const [cacheInfo, setCacheInfo] = useState(null)
+  const [needsRefresh, setNeedsRefresh] = useState(false)
   
   // Fetch listings
   const fetchListings = useCallback(async () => {
@@ -55,6 +57,8 @@ export default function ListingManagerPage() {
       setTotal(result.total || 0)
       setTotalPages(result.total_pages || 1)
       setStateCounts(result.state_counts || {})
+      setCacheInfo(result.cache_info || null)
+      setNeedsRefresh(result.needs_refresh || false)
     } catch (error) {
       console.error('Failed to fetch listings:', error)
     } finally {
@@ -188,6 +192,26 @@ export default function ListingManagerPage() {
           </button>
         ))}
       </div>
+      
+      {/* Cache Freshness Warning - Etsy API Terms Section 5 Compliance */}
+      {needsRefresh && cacheInfo && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-2 text-amber-800">
+            <Clock className="w-5 h-5" />
+            <span className="text-sm">
+              <strong>Data may be outdated:</strong> Last synced {cacheInfo.age_hours?.toFixed(1) || '?'} hours ago. 
+              Etsy requires listing data to be refreshed every {cacheInfo.max_age_hours} hours.
+            </span>
+          </div>
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="px-3 py-1 bg-amber-600 text-white text-sm rounded-lg hover:bg-amber-700 disabled:opacity-50"
+          >
+            {syncing ? 'Syncing...' : 'Refresh Now'}
+          </button>
+        </div>
+      )}
       
       {/* Search & Actions Bar */}
       <div className="flex items-center justify-between gap-4 mb-4">

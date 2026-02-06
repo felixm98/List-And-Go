@@ -3,21 +3,36 @@ Etsy API Integration
 
 Handles OAuth 2.0 authentication with PKCE, token management,
 and all listing-related API calls.
+
+Compliance with Etsy API Terms:
+- Rate limiting (Section 2)
+- Data freshness (Section 5)
 """
 
 import os
 import base64
 import hashlib
 import secrets
+import time
+import logging
 import requests
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
 from cryptography.fernet import Fernet
 
+# Import compliance utilities
+from api_compliance import get_rate_limiter, handle_rate_limit_response, RateLimitExceededError
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
 # Etsy API base URL
 ETSY_API_BASE = 'https://openapi.etsy.com/v3'
 ETSY_AUTH_URL = 'https://www.etsy.com/oauth/connect'
 ETSY_TOKEN_URL = 'https://api.etsy.com/v3/public/oauth/token'
+
+# Maximum retries for rate-limited requests
+MAX_RATE_LIMIT_RETRIES = 3
 
 # Encryption for storing tokens
 _fernet = None
@@ -158,6 +173,52 @@ def get_auth_headers(access_token: str) -> dict:
         'x-api-key': api_key,
         'Content-Type': 'application/json'
     }
+
+
+def make_etsy_request(method: str, url: str, **kwargs) -> requests.Response:
+    """
+    Make a rate-limited request to the Etsy API with retry on 429.
+    
+    Args:
+        method: HTTP method ('get', 'post', 'put', 'delete')
+        url: Full URL to request
+        **kwargs: Additional arguments for requests
+    
+    Returns:
+        requests.Response object
+    
+    Raises:
+        RateLimitExceededError: If daily limit exceeded
+        Exception: If request fails after retries
+    """
+    rate_limiter = get_rate_limiter()
+    
+    for attempt in range(MAX_RATE_LIMIT_RETRIES):
+        # Apply rate limiting before request
+        try:
+            remaining = rate_limiter.wait_if_needed()
+            if remaining < 100:
+                logger.warning(f"Low on API calls: {remaining} remaining today")
+        except RateLimitExceededError:
+            raise
+        
+        # Make the request
+        request_func = getattr(requests, method.lower())
+        response = request_func(url, **kwargs)
+        
+        # Handle rate limiting response
+        wait_time = handle_rate_limit_response(response)
+        if wait_time:
+            if attempt < MAX_RATE_LIMIT_RETRIES - 1:
+                logger.info(f"Rate limited, waiting {wait_time}s before retry {attempt + 2}")
+                time.sleep(wait_time)
+                continue
+            else:
+                raise Exception(f"Rate limited after {MAX_RATE_LIMIT_RETRIES} retries")
+        
+        return response
+    
+    return response
 
 
 def get_user_info(access_token: str) -> dict:
