@@ -56,8 +56,7 @@ const EDITOR_TABS = [
   { id: 'price', label: 'Price & Inventory' },
   { id: 'variations', label: 'Variations' },
   { id: 'details', label: 'Details' },
-  { id: 'shipping', label: 'Processing & Shipping' },
-  { id: 'settings', label: 'Settings' }
+  { id: 'shipping', label: 'Processing & Shipping' }
 ]
 
 export default function PresetEditor({ preset, onSave, onClose }) {
