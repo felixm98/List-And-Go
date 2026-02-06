@@ -8,6 +8,8 @@ import SettingsPage from './pages/SettingsPage'
 import ListingManagerPage from './pages/ListingManagerPage'
 import LoginPage from './pages/LoginPage'
 import AuthCallbackPage from './pages/AuthCallbackPage'
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
+import TermsOfServicePage from './pages/TermsOfServicePage'
 import { api } from './services/api'
 
 // Protected route wrapper
@@ -84,6 +86,8 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage onEnterDemo={handleEnterDemo} />} />
         <Route path="/auth-callback" element={<AuthCallbackPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsOfServicePage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     )
@@ -141,14 +145,25 @@ function App() {
           />
           <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="/auth-callback" element={<AuthCallbackPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsOfServicePage />} />
         </Routes>
       </main>
       
       {/* Footer with legal disclaimer */}
       <footer className="mt-auto py-4 px-4 border-t bg-white">
-        <p className="text-center text-xs text-gray-500">
-          The term 'Etsy' is a trademark of Etsy, Inc. This application uses the Etsy API but is not endorsed or certified by Etsy, Inc.
-        </p>
+        <div className="container mx-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-xs text-gray-500">
+            <div className="flex items-center gap-4">
+              <a href="/privacy" className="hover:text-brand-primary hover:underline">Privacy Policy</a>
+              <span className="text-gray-300">|</span>
+              <a href="/terms" className="hover:text-brand-primary hover:underline">Terms of Service</a>
+            </div>
+          </div>
+          <p className="text-center text-xs text-gray-400 mt-2">
+            The term 'Etsy' is a trademark of Etsy, Inc. This application uses the Etsy API but is not endorsed or certified by Etsy, Inc.
+          </p>
+        </div>
       </footer>
     </div>
   )

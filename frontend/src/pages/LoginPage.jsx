@@ -223,7 +223,16 @@ export default function LoginPage({ onEnterDemo }) {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-center space-y-2">
+          <div className="flex items-center justify-center gap-4 text-sm">
+            <a href="/privacy" className="text-brand-primary hover:text-brand-dark hover:underline">
+              Privacy Policy
+            </a>
+            <span className="text-gray-300">|</span>
+            <a href="/terms" className="text-brand-primary hover:text-brand-dark hover:underline">
+              Terms of Service
+            </a>
+          </div>
           <p className="text-xs text-gray-400">
             The term 'Etsy' is a trademark of Etsy, Inc.
             <br />
