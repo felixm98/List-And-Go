@@ -179,7 +179,7 @@ def analyze_image_for_prompt(image_base64: str, context: str = None) -> dict:
 
     try:
         response = client.chat.completions.create(
-            model="llama-3.2-90b-vision-preview",
+            model="meta-llama/llama-4-scout-17b-16e-instruct",
             messages=[
                 {
                     "role": "system",
@@ -196,8 +196,9 @@ def analyze_image_for_prompt(image_base64: str, context: str = None) -> dict:
                     ]
                 }
             ],
-            max_tokens=3000,
-            temperature=0.5
+            max_completion_tokens=3000,
+            temperature=0.5,
+            response_format={"type": "json_object"}
         )
 
         content = response.choices[0].message.content.strip()

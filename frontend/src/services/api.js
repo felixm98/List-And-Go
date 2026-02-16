@@ -71,10 +71,19 @@ class ApiService {
         }
       }
 
-      const data = await response.json()
+      // Try to parse JSON, but handle non-JSON responses gracefully
+      let data
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        const text = await response.text().catch(() => '')
+        throw new Error(
+          `Server error (${response.status}): ${text.substring(0, 200) || response.statusText || 'No response body'}`
+        )
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Request failed')
+        throw new Error(data.error || `Request failed (${response.status})`)
       }
 
       return data
