@@ -71,19 +71,10 @@ class ApiService {
         }
       }
 
-      // Try to parse JSON, but handle non-JSON responses gracefully
-      let data
-      try {
-        data = await response.json()
-      } catch (parseError) {
-        const text = await response.text().catch(() => '')
-        throw new Error(
-          `Server error (${response.status}): ${text.substring(0, 200) || response.statusText || 'No response body'}`
-        )
-      }
+      const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || `Request failed (${response.status})`)
+        throw new Error(data.error || 'Request failed')
       }
 
       return data
@@ -530,93 +521,6 @@ class ApiService {
     return this.request(`/api/shop/listings/${listingId}/images/reorder`, {
       method: 'PATCH',
       body: JSON.stringify({ image_ids: imageIds })
-    })
-  }
-
-  // ============== Mockup Analyzer & Nano Banano Pro ==============
-
-  /**
-   * Search Etsy for bestselling products/mockups
-   */
-  async searchBestsellers(query, options = {}) {
-    return this.request('/api/mockup/search-bestsellers', {
-      method: 'POST',
-      auth: false,
-      body: JSON.stringify({
-        query,
-        limit: options.limit || 20,
-        sort_on: options.sort_on || 'score',
-        min_price: options.min_price || null,
-        max_price: options.max_price || null,
-      })
-    })
-  }
-
-  /**
-   * Analyze an image from URL and generate Nano Banano Pro prompt
-   */
-  async analyzeImageUrl(imageUrl, context = '') {
-    return this.request('/api/mockup/analyze-url', {
-      method: 'POST',
-      auth: false,
-      body: JSON.stringify({
-        image_url: imageUrl,
-        context
-      })
-    })
-  }
-
-  /**
-   * Analyze an uploaded image (base64) and generate Nano Banano Pro prompt
-   */
-  async analyzeImageUpload(imageData, context = '') {
-    return this.request('/api/mockup/analyze-upload', {
-      method: 'POST',
-      auth: false,
-      body: JSON.stringify({
-        image_data: imageData,
-        context
-      })
-    })
-  }
-
-  /**
-   * Upload image file for analysis
-   */
-  async analyzeImageFile(file, context = '') {
-    const formData = new FormData()
-    formData.append('image', file)
-    formData.append('context', context)
-
-    const url = `${API_BASE}/api/mockup/analyze-upload`
-    const headers = {}
-    if (this.accessToken) {
-      headers['Authorization'] = `Bearer ${this.accessToken}`
-    }
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: formData
-    })
-
-    const data = await response.json()
-    if (!response.ok) {
-      throw new Error(data.error || 'Upload analysis failed')
-    }
-    return data
-  }
-
-  /**
-   * Batch analyze multiple image URLs
-   */
-  async batchAnalyzeImages(imageUrls, contexts = []) {
-    return this.request('/api/mockup/batch-analyze', {
-      method: 'POST',
-      body: JSON.stringify({
-        image_urls: imageUrls,
-        contexts
-      })
     })
   }
 

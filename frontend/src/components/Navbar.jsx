@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Upload, LayoutDashboard, Settings, LogOut, Store, Eye, List, Rocket, Sparkles } from 'lucide-react'
+import { Upload, LayoutDashboard, Settings, LogOut, Store, Eye, List, Rocket } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import api from '../services/api'
 
@@ -101,20 +101,6 @@ function Navbar({ listingsCount, onLogout, isDemoMode = false }) {
             >
               <List className="w-4 h-4" />
               Shop Listings
-            </Link>
-
-            <Link
-              to="/mockup-analyzer"
-              className={`
-                flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors
-                ${isActive('/mockup-analyzer')
-                  ? 'bg-brand-light text-brand-primary'
-                  : 'text-gray-600 hover:bg-gray-100'
-                }
-              `}
-            >
-              <Sparkles className="w-4 h-4" />
-              Mockup AI
             </Link>
 
             <Link

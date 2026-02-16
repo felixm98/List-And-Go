@@ -235,7 +235,7 @@ Respond with ONLY valid JSON. No markdown, no explanation."""
 
     try:
         response = client.chat.completions.create(
-            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            model="llama-3.2-90b-vision-preview",
             messages=[
                 {
                     "role": "system",
@@ -252,9 +252,8 @@ Respond with ONLY valid JSON. No markdown, no explanation."""
                     ]
                 }
             ],
-            max_completion_tokens=2500,
-            temperature=0.7,
-            response_format={"type": "json_object"}
+            max_tokens=2500,
+            temperature=0.7
         )
         
         content = response.choices[0].message.content.strip()
@@ -478,7 +477,7 @@ Respond with ONLY a JSON array of exactly 13 tags."""
     
     try:
         response = client.chat.completions.create(
-            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            model="llama-3.2-90b-vision-preview",
             messages=[
                 {
                     "role": "system",
@@ -495,7 +494,7 @@ Respond with ONLY a JSON array of exactly 13 tags."""
                     ]
                 }
             ],
-            max_completion_tokens=1500,
+            max_tokens=1500,
             temperature=0.8
         )
         
@@ -560,14 +559,13 @@ Respond in JSON format."""
 
     try:
         response = client.chat.completions.create(
-            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            model="llama-3.2-90b-vision-preview",
             messages=[
                 {"role": "system", "content": ETSY_EXPERT_SYSTEM_PROMPT},
                 {"role": "user", "content": prompt}
             ],
-            max_completion_tokens=1000,
-            temperature=0.7,
-            response_format={"type": "json_object"}
+            max_tokens=1000,
+            temperature=0.7
         )
         
         content = response.choices[0].message.content.strip()

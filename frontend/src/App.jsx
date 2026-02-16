@@ -6,7 +6,6 @@ import UploadPage from './pages/UploadPage'
 import DashboardPage from './pages/DashboardPage'
 import SettingsPage from './pages/SettingsPage'
 import ListingManagerPage from './pages/ListingManagerPage'
-import MockupAnalyzerPage from './pages/MockupAnalyzerPage'
 import LoginPage from './pages/LoginPage'
 import AuthCallbackPage from './pages/AuthCallbackPage'
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
@@ -139,10 +138,6 @@ function App() {
           <Route 
             path="/shop-listings" 
             element={<ListingManagerPage />} 
-          />
-          <Route 
-            path="/mockup-analyzer" 
-            element={<MockupAnalyzerPage />} 
           />
           <Route 
             path="/settings" 
