@@ -1782,7 +1782,6 @@ def health_check():
 # ============== Mockup Analyzer & Nano Banano Pro Prompt Generator ==============
 
 @app.route('/api/mockup/search-bestsellers', methods=['POST'])
-@jwt_required()
 def mockup_search_bestsellers():
     """Search Etsy for bestselling products/mockups"""
     try:
@@ -1817,7 +1816,6 @@ def mockup_search_bestsellers():
 
 
 @app.route('/api/mockup/analyze-url', methods=['POST'])
-@jwt_required()
 def mockup_analyze_url():
     """Analyze an image from URL and generate Nano Banano Pro prompt"""
     try:
@@ -1844,7 +1842,6 @@ def mockup_analyze_url():
 
 
 @app.route('/api/mockup/analyze-upload', methods=['POST'])
-@jwt_required()
 def mockup_analyze_upload():
     """Analyze an uploaded image (file or base64) and generate Nano Banano Pro prompt"""
     try:
@@ -1894,7 +1891,6 @@ def mockup_analyze_upload():
 
 
 @app.route('/api/mockup/batch-analyze', methods=['POST'])
-@jwt_required()
 def mockup_batch_analyze():
     """Analyze multiple images from URLs and generate prompts for each"""
     try:

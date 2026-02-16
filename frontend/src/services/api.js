@@ -541,6 +541,7 @@ class ApiService {
   async searchBestsellers(query, options = {}) {
     return this.request('/api/mockup/search-bestsellers', {
       method: 'POST',
+      auth: false,
       body: JSON.stringify({
         query,
         limit: options.limit || 20,
@@ -557,6 +558,7 @@ class ApiService {
   async analyzeImageUrl(imageUrl, context = '') {
     return this.request('/api/mockup/analyze-url', {
       method: 'POST',
+      auth: false,
       body: JSON.stringify({
         image_url: imageUrl,
         context
@@ -570,6 +572,7 @@ class ApiService {
   async analyzeImageUpload(imageData, context = '') {
     return this.request('/api/mockup/analyze-upload', {
       method: 'POST',
+      auth: false,
       body: JSON.stringify({
         image_data: imageData,
         context
