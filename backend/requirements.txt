@@ -1,5 +1,4 @@
 Pillow==10.2.0
-groq==0.4.2
 pip
 setuptools
 wheel

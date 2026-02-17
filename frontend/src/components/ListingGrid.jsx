@@ -39,16 +39,6 @@ function ListingGrid({ listings, onUpdate, onRemove, onUpload, onClear }) {
     setScheduleDate(null)
   }
   
-  const averageSeoScore = Math.round(
-    listings.reduce((sum, l) => sum + l.seoScore, 0) / listings.length
-  )
-  
-  const getSeoColor = (score) => {
-    if (score >= 80) return 'text-green-600'
-    if (score >= 60) return 'text-yellow-600'
-    return 'text-red-600'
-  }
-  
   if (listings.length === 0) return null
   
   return (
@@ -59,9 +49,6 @@ function ListingGrid({ listings, onUpdate, onRemove, onUpload, onClear }) {
           <h2 className="text-xl font-semibold text-gray-800">
             {listings.length} {listings.length === 1 ? 'product' : 'products'} ready
           </h2>
-          <p className="text-sm text-gray-500">
-            Average SEO score: <span className={`font-semibold ${getSeoColor(averageSeoScore)}`}>{averageSeoScore}</span>
-          </p>
         </div>
         
         <div className="flex items-center gap-2">

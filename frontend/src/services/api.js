@@ -161,60 +161,6 @@ class ApiService {
     })
   }
 
-  // ============== AI Generation ==============
-  async generateContent(imageFile, folderName, imageCount, categoryHint) {
-    const formData = new FormData()
-    formData.append('image', imageFile)
-    formData.append('folder_name', folderName || '')
-    formData.append('image_count', imageCount || 1)
-    formData.append('category_hint', categoryHint || '')
-
-    const response = await fetch(`${API_BASE}/api/generate`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.accessToken}`
-      },
-      body: formData
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || 'Generation failed')
-    }
-
-    return response.json()
-  }
-
-  async regenerateField(imageFile, field, currentContent, instruction) {
-    const formData = new FormData()
-    formData.append('image', imageFile)
-    formData.append('field', field)
-    formData.append('current_content', JSON.stringify(currentContent))
-    formData.append('instruction', instruction || '')
-
-    const response = await fetch(`${API_BASE}/api/regenerate`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.accessToken}`
-      },
-      body: formData
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || 'Regeneration failed')
-    }
-
-    return response.json()
-  }
-
-  async getSeoScore(title, description, tags) {
-    return this.request('/api/seo-score', {
-      method: 'POST',
-      body: JSON.stringify({ title, description, tags })
-    })
-  }
-
   // ============== Etsy Connection ==============
   async getEtsyStatus() {
     return this.request('/api/etsy/status')
@@ -457,20 +403,6 @@ class ApiService {
     return this.request('/api/shop/listings/bulk', {
       method: 'PATCH',
       body: JSON.stringify({ listing_ids: listingIds, updates })
-    })
-  }
-
-  /**
-   * Regenerate AI content for a listing
-   * @param {string} listingId - Etsy listing ID
-   * @param {string} field - Field to regenerate (title, description, tags)
-   * @param {string} instruction - AI guidance instruction
-   * @param {number} imageRank - Which image to use for AI analysis
-   */
-  async regenerateListingContent(listingId, field, instruction = '', imageRank = 1) {
-    return this.request(`/api/shop/listings/${listingId}/regenerate`, {
-      method: 'POST',
-      body: JSON.stringify({ field, instruction, image_rank: imageRank })
     })
   }
 

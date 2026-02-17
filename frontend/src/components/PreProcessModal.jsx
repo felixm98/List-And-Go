@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Settings, DollarSign, Tag, Truck, RotateCcw, Loader2, AlertCircle, Package, FileText, Sparkles, Type, Eye } from 'lucide-react'
+import { X, Settings, DollarSign, Tag, Truck, RotateCcw, Loader2, AlertCircle, Package, FileText, Type, Eye } from 'lucide-react'
 import api from '../services/api'
 import PresetPreviewModal from './PresetPreviewModal'
 
@@ -44,7 +44,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
     templateName: '',
     // New preset-related settings
     selectedPresetId: null,
-    descriptionSource: 'ai', // 'ai', 'template', 'manual'
+    descriptionSource: 'template', // 'template', 'manual'
     descriptionTemplateId: null,
     manualDescription: ''
   })
@@ -213,7 +213,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
 
           {/* Preset Selector - NEW */}
           {!isLoading && presets.length > 0 && (
-            <div className="bg-gradient-to-r from-brand-primary/5 to-rose-50 rounded-xl p-4 border border-brand-primary/20">
+            <div className="bg-gradient-to-r from-brand-primary/5 to-brand-light rounded-xl p-4 border border-brand-primary/20">
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 <Package className="w-4 h-4 text-brand-primary" />
                 Choose a saved preset
@@ -237,7 +237,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                         shippingProfileId: selectedPreset.shipping_profile_id || s.shippingProfileId,
                         returnPolicyId: selectedPreset.return_policy_id || s.returnPolicyId,
                         categoryId: selectedPreset.taxonomy_id || s.categoryId,
-                        descriptionSource: selectedPreset.description_source || 'ai',
+                        descriptionSource: selectedPreset.description_source || 'template',
                         descriptionTemplateId: selectedPreset.description_template_id || null,
                         manualDescription: selectedPreset.manual_description || ''
                       }))
@@ -280,19 +280,7 @@ function PreProcessModal({ isOpen, onClose, onConfirm, productCount }) {
                 <FileText className="w-4 h-4" />
                 Description Source
               </label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSettings(s => ({ ...s, descriptionSource: 'ai' }))}
-                  className={`p-3 rounded-lg border-2 text-center transition-all ${
-                    settings.descriptionSource === 'ai'
-                      ? 'border-brand-primary bg-brand-primary/5 text-brand-primary'
-                      : 'border-gray-200 hover:border-gray-300 text-gray-600'
-                  }`}
-                >
-                  <Sparkles className="w-5 h-5 mx-auto mb-1" />
-                  <span className="text-xs font-medium">AI-generated</span>
-                </button>
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setSettings(s => ({ ...s, descriptionSource: 'template' }))}

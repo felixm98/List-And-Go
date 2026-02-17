@@ -97,7 +97,7 @@ function App() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Demo Mode Banner */}
       {isDemoMode && !isAuthenticated && (
-        <div className="bg-gradient-to-r from-rose-400 to-brand-primary text-white px-4 py-2">
+        <div className="bg-gradient-to-r from-brand-dark to-brand-primary text-white px-4 py-2">
           <div className="container mx-auto flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">🎭 Demo Mode</span>

@@ -7,17 +7,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        'brand-primary': '#E8A0A0',
-        'brand-dark': '#D18080',
-        'brand-black': '#2D2D2D',
-        'brand-gray': '#595959',
-        'brand-light': '#FDF0F0',
+        'brand-primary': '#4F8A8B',
+        'brand-dark': '#3B6F70',
+        'brand-black': '#1E293B',
+        'brand-gray': '#64748B',
+        'brand-light': '#EFF6F6',
         // Keep old names as aliases for compatibility
-        'etsy-orange': '#E8A0A0',
-        'etsy-orange-dark': '#D18080',
-        'etsy-black': '#2D2D2D',
-        'etsy-gray': '#595959',
-        'etsy-light': '#FDF0F0',
+        'etsy-orange': '#4F8A8B',
+        'etsy-orange-dark': '#3B6F70',
+        'etsy-black': '#1E293B',
+        'etsy-gray': '#64748B',
+        'etsy-light': '#EFF6F6',
       }
     },
   },

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Store, Loader2, AlertCircle, ChevronDown, ChevronUp, Upload, Sparkles, Clock, CheckCircle, Eye, Rocket } from 'lucide-react'
+import { Store, Loader2, AlertCircle, ChevronDown, ChevronUp, Upload, Clock, CheckCircle, Eye, Rocket, Package } from 'lucide-react'
 import { api } from '../services/api'
 
 export default function LoginPage({ onEnterDemo }) {
@@ -46,7 +46,7 @@ export default function LoginPage({ onEnterDemo }) {
 
   const steps = [
     {
-      icon: Upload,
+      icon: Package,
       title: 'Create a preset',
       description: 'Set up price, category, shipping and more once. Reuse for all future listings.'
     },
@@ -54,11 +54,6 @@ export default function LoginPage({ onEnterDemo }) {
       icon: Upload,
       title: 'Upload folders',
       description: 'Drag and drop folders with product images. Select a preset to apply settings automatically.'
-    },
-    {
-      icon: Sparkles,
-      title: 'AI generates content',
-      description: 'Our AI analyzes images and creates titles, descriptions, and tags.'
     },
     {
       icon: Clock,
@@ -73,7 +68,7 @@ export default function LoginPage({ onEnterDemo }) {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-rose-100">
+    <div className="min-h-screen bg-gradient-to-br from-brand-light via-white to-slate-100">
       <div className="container mx-auto px-4 py-8 flex flex-col items-center">
         
         {/* Main Login Card */}
@@ -154,8 +149,8 @@ export default function LoginPage({ onEnterDemo }) {
             className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-brand-primary" />
+              <div className="w-10 h-10 bg-brand-light rounded-xl flex items-center justify-center">
+                <Rocket className="w-5 h-5 text-brand-primary" />
               </div>
               <span className="text-lg font-semibold text-gray-900">How does it work?</span>
             </div>
@@ -177,12 +172,12 @@ export default function LoginPage({ onEnterDemo }) {
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm ${
                         index === steps.length - 1 
                           ? 'bg-green-100 text-green-600' 
-                          : 'bg-rose-50 text-brand-primary'
+                          : 'bg-brand-light text-brand-primary'
                       }`}>
                         <step.icon className="w-6 h-6" />
                       </div>
                       {index < steps.length - 1 && (
-                        <div className="absolute left-1/2 top-12 w-0.5 h-4 bg-rose-200 -translate-x-1/2"></div>
+                        <div className="absolute left-1/2 top-12 w-0.5 h-4 bg-brand-primary/20 -translate-x-1/2"></div>
                       )}
                     </div>
                     <div className="flex-1 pt-1">
@@ -198,8 +193,8 @@ export default function LoginPage({ onEnterDemo }) {
               {/* Features highlight */}
               <div className="mt-6 pt-6 border-t grid grid-cols-2 gap-4">
                 <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
-                  <h4 className="font-medium text-purple-900 mb-1">🤖 AI-Generated</h4>
-                  <p className="text-xs text-purple-700">Titles, descriptions and tags created automatically</p>
+                  <h4 className="font-medium text-purple-900 mb-1">📋 Listing Presets</h4>
+                  <p className="text-xs text-purple-700">Save and reuse settings for different product types</p>
                 </div>
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
                   <h4 className="font-medium text-blue-900 mb-1">📁 Bulk Upload</h4>
@@ -210,12 +205,12 @@ export default function LoginPage({ onEnterDemo }) {
                   <p className="text-xs text-green-700">Publish at optimal times</p>
                 </div>
                 <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4">
-                  <h4 className="font-medium text-amber-900 mb-1">📊 SEO-Optimized</h4>
-                  <p className="text-xs text-amber-700">Maximize visibility on Etsy</p>
+                  <h4 className="font-medium text-amber-900 mb-1">📝 Templates</h4>
+                  <p className="text-xs text-amber-700">Reusable description templates with variables</p>
                 </div>
-                <div className="col-span-2 bg-gradient-to-br from-rose-50 to-rose-100 rounded-xl p-4">
-                  <h4 className="font-medium text-rose-900 mb-1">⚡ Reusable Presets</h4>
-                  <p className="text-xs text-rose-700">Save your settings once and apply them to all listings automatically</p>
+                <div className="col-span-2 bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-4">
+                  <h4 className="font-medium text-teal-900 mb-1">⚡ Reusable Presets</h4>
+                  <p className="text-xs text-teal-700">Save your settings once and apply them to all listings automatically</p>
                 </div>
               </div>
             </div>

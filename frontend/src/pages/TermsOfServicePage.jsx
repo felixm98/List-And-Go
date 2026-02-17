@@ -69,7 +69,7 @@ export default function TermsOfServicePage() {
                 <li>Use the Service only for lawful purposes and in compliance with all applicable laws</li>
                 <li>Not upload content that infringes on intellectual property rights</li>
                 <li>Not use the Service to create fraudulent, misleading, or deceptive listings</li>
-                <li>Review all AI-generated content before publishing to ensure accuracy</li>
+                <li>Review all content before publishing to ensure accuracy</li>
                 <li>Take responsibility for all listings created through the Service</li>
                 <li>Not attempt to reverse engineer, hack, or disrupt the Service</li>
                 <li>Not use automated tools to access the Service beyond intended functionality</li>
@@ -77,15 +77,14 @@ export default function TermsOfServicePage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">5. AI-Generated Content</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">5. Content Responsibility</h2>
               <p className="text-gray-700 mb-4">
-                Our Service uses artificial intelligence to generate listing content. You acknowledge that:
+                Our Service helps you create and manage Etsy listings. You acknowledge that:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2">
-                <li>AI-generated content is provided as a starting point and may require editing</li>
                 <li>You are solely responsible for reviewing and approving all content before publishing</li>
-                <li>AI suggestions may not always be accurate or appropriate for your products</li>
-                <li>We do not guarantee that AI-generated content will result in sales or rankings</li>
+                <li>Content suggestions may not always be accurate or appropriate for your products</li>
+                <li>We do not guarantee that listings will result in sales or rankings</li>
                 <li>You retain full ownership and responsibility for all published content</li>
               </ul>
             </section>

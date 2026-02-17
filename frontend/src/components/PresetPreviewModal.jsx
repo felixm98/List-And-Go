@@ -1,4 +1,4 @@
-import { X, Package, DollarSign, Truck, RotateCcw, Sparkles, FileText, Tag, Clock } from 'lucide-react'
+import { X, Package, DollarSign, Truck, RotateCcw, FileText, Tag, Clock, Pencil } from 'lucide-react'
 
 const WHO_MADE_LABELS = {
   'i_did': 'I did',
@@ -124,9 +124,6 @@ export default function PresetPreviewModal({ preset, onClose, onEdit }) {
                 <span className="font-medium text-gray-900">Description</span>
               </div>
               <div className="text-sm">
-                {preset.description_source === 'ai' && (
-                  <p className="text-purple-700">🤖 AI-generated per image</p>
-                )}
                 {preset.description_source === 'template' && (
                   <p className="text-purple-700">📝 Template: {preset.description_template_name || 'Not selected'}</p>
                 )}
@@ -145,7 +142,7 @@ export default function PresetPreviewModal({ preset, onClose, onEdit }) {
             {preset.is_personalizable && (
               <div className="bg-yellow-50 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="w-5 h-5 text-yellow-600" />
+                  <Pencil className="w-5 h-5 text-yellow-600" />
                   <span className="font-medium text-gray-900">Personalization</span>
                 </div>
                 <div className="text-sm space-y-1">
@@ -184,11 +181,11 @@ export default function PresetPreviewModal({ preset, onClose, onEdit }) {
               </div>
             )}
 
-            {/* Info about AI fields */}
+            {/* Info about fields */}
             <div className="bg-gray-100 rounded-lg p-3 text-sm text-gray-600">
               <p className="flex items-center gap-2">
-                <span className="text-lg">⚠️</span>
-                <span>Title, Tags and Description (if AI selected) are automatically generated per image during upload</span>
+                <span className="text-lg">💡</span>
+                <span>Title, tags and description should be filled in manually or via templates before uploading</span>
               </p>
             </div>
           </div>

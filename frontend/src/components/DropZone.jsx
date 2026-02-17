@@ -1,63 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload, FolderOpen, Image, Loader2 } from 'lucide-react'
-import api from '../services/api'
-
-// Mock AI generation - fallback when API is not available
-const mockGenerateContent = async (folderName, images) => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000))
-  
-  const productTypes = ['T-shirt Mockup', 'Hoodie Mockup', 'Mug Mockup', 'Tote Bag Mockup', 'Poster Mockup']
-  const styles = ['Minimalist', 'Vintage', 'Modern', 'Boho', 'Rustic', 'Elegant']
-  const colors = ['White', 'Black', 'Navy', 'Heather Gray', 'Natural']
-  
-  const type = productTypes[Math.floor(Math.random() * productTypes.length)]
-  const style = styles[Math.floor(Math.random() * styles.length)]
-  const color = colors[Math.floor(Math.random() * colors.length)]
-  
-  return {
-    title: `${style} ${type} | ${color} | High Quality Digital Download | Commercial Use`,
-    description: `✨ PROFESSIONAL ${type.toUpperCase()} ✨
-
-This stunning ${style.toLowerCase()} ${type.toLowerCase()} is perfect for showcasing your designs with elegance and sophistication.
-
-📦 WHAT YOU GET:
-• ${images.length} high-resolution mockup variations
-• PNG format with transparent background
-• 300 DPI print-ready quality
-• Instant digital download
-
-💼 COMMERCIAL LICENSE INCLUDED
-Use for your Etsy shop, print-on-demand, social media, and more!
-
-🎨 PERFECT FOR:
-• T-shirt designers
-• Print on demand sellers
-• Social media marketers
-• Brand presentations
-
-📧 Need help? Message us anytime!`,
-    tags: [
-      type.toLowerCase().replace(' ', ''),
-      'mockup',
-      'digital download',
-      style.toLowerCase(),
-      'commercial use',
-      'png mockup',
-      't-shirt mockup',
-      'apparel mockup',
-      'product mockup',
-      'design template',
-      'instant download',
-      'print on demand',
-      'etsy seller'
-    ].slice(0, 13),
-    category: 'Digital Downloads > Graphics > Mockups',
-    style: style,
-    seoScore: Math.floor(70 + Math.random() * 25)
-  }
-}
 
 // Process files to detect folder structure
 const processFiles = (files) => {
@@ -128,62 +71,23 @@ function DropZone({ onFilesProcessed, isProcessing, setIsProcessing, showPreProc
       return
     }
     
-    // Show pre-process modal if enabled
+    // Show pre-process modal if enabled, otherwise add directly
     if (showPreProcessModal) {
       onFilesProcessed(products, true) // true = show modal
       return
     }
     
-    // Process immediately with AI
-    setIsProcessing(true)
+    // Add products directly with basic data
+    const processedProducts = products.map(product => ({
+      ...product,
+      title: `${product.folderName} | Digital Download`,
+      description: '',
+      tags: [],
+      status: 'ready'
+    }))
     
-    try {
-      const processedProducts = []
-      
-      for (const product of products) {
-        try {
-          // Try real API first
-          let aiContent
-          try {
-            aiContent = await api.generateContent(
-              product.images[0].file,
-              product.folderName,
-              product.images.length,
-              ''
-            )
-          } catch (apiError) {
-            // Fallback to mock when API unavailable
-            console.log('API unavailable, using mock:', apiError.message)
-            aiContent = await mockGenerateContent(product.folderName, product.images)
-          }
-          
-          processedProducts.push({
-            ...product,
-            ...aiContent,
-            seoScore: aiContent.seo_score || aiContent.seoScore || 75,
-            status: 'ready'
-          })
-        } catch (err) {
-          console.error(`Failed to process ${product.folderName}:`, err)
-          processedProducts.push({
-            ...product,
-            title: `${product.folderName} - Processing failed`,
-            description: 'Could not generate content. Please edit manually.',
-            tags: ['mockup', 'digital download'],
-            seoScore: 30,
-            status: 'error'
-          })
-        }
-      }
-      
-      onFilesProcessed(processedProducts, false)
-    } catch (error) {
-      console.error('Error processing files:', error)
-      alert('Ett fel uppstod vid bearbetning av filerna.')
-    } finally {
-      setIsProcessing(false)
-    }
-  }, [onFilesProcessed, setIsProcessing, showPreProcessModal])
+    onFilesProcessed(processedProducts, false)
+  }, [onFilesProcessed, showPreProcessModal])
   
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -203,7 +107,7 @@ function DropZone({ onFilesProcessed, isProcessing, setIsProcessing, showPreProc
         transition-all duration-300 ease-out
         ${isDragActive 
           ? 'border-brand-primary bg-brand-light scale-[1.02] shadow-lg' 
-          : 'border-gray-300 hover:border-brand-primary hover:bg-rose-50'
+          : 'border-gray-300 hover:border-brand-primary hover:bg-brand-light/50'
         }
         ${isProcessing ? 'pointer-events-none opacity-60' : ''}
       `}
@@ -214,10 +118,10 @@ function DropZone({ onFilesProcessed, isProcessing, setIsProcessing, showPreProc
         <div className="flex flex-col items-center">
           <Loader2 className="w-16 h-16 text-brand-primary animate-spin mb-4" />
           <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            Analyzing mockups with AI...
+            Processing files...
           </h3>
           <p className="text-gray-500">
-            Generating titles, tags and descriptions
+            Preparing your products for upload
           </p>
         </div>
       ) : (
@@ -235,7 +139,7 @@ function DropZone({ onFilesProcessed, isProcessing, setIsProcessing, showPreProc
           </div>
           
           <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            {isDragActive ? 'Drop folders here!' : 'Drag and drop mockup folders'}
+            {isDragActive ? 'Drop folders here!' : 'Drag and drop product folders'}
           </h3>
           
           <p className="text-gray-500 mb-4">

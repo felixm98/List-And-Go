@@ -16,8 +16,9 @@ from config import config
 from models import db, User, Template, Upload, Listing, EtsyToken, ListingPreset, DescriptionTemplate, EtsyListing
 from auth import auth_bp, get_or_create_user_from_etsy, create_tokens_for_user
 from settings import settings_bp
-from ai_generator import generate_listing_content, regenerate_field, encode_image_bytes_to_base64
-from seo_scorer import calculate_seo_score
+# AI features removed - Etsy does not allow AI-generated content
+# from ai_generator import generate_listing_content, regenerate_field, encode_image_bytes_to_base64
+# from seo_scorer import calculate_seo_score
 from etsy_api import (
     get_authorization_url, exchange_code_for_tokens, refresh_access_token,
     get_shop_info, get_shipping_profiles, get_return_policies, get_shop_sections,
@@ -473,94 +474,20 @@ def preview_description_template(template_id):
     return jsonify({'rendered': rendered})
 
 
-# ============== AI Generation Routes ==============
+# ============== AI Generation Routes (Disabled) ==============
+# AI features have been removed as Etsy does not allow AI-generated content.
 
 @app.route('/api/generate', methods=['POST'])
-@jwt_required()
 def generate_content():
-    """Generate listing content from an image using AI"""
-    if 'image' not in request.files:
-        return jsonify({'error': 'No image provided'}), 400
-    
-    image_file = request.files['image']
-    folder_name = request.form.get('folder_name', '')
-    image_count = int(request.form.get('image_count', 1))
-    category_hint = request.form.get('category_hint', '')
-    
-    try:
-        # Read and encode image
-        image_bytes = image_file.read()
-        image_base64 = encode_image_bytes_to_base64(image_bytes)
-        
-        # Generate content
-        content = generate_listing_content(
-            image_data=image_base64,
-            folder_name=folder_name,
-            image_count=image_count,
-            category_hint=category_hint
-        )
-        
-        # Calculate SEO score
-        seo = calculate_seo_score(
-            content.get('title', ''),
-            content.get('description', ''),
-            content.get('tags', [])
-        )
-        
-        content['seo_score'] = seo['overall_score']
-        content['seo_breakdown'] = seo['breakdown']
-        content['seo_tips'] = seo['tips']
-        content['seo_grade'] = seo['grade']
-        
-        return jsonify(content)
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
+    return jsonify({'error': 'AI generation has been disabled'}), 410
 
 @app.route('/api/regenerate', methods=['POST'])
-@jwt_required()
 def regenerate_content():
-    """Regenerate a specific field"""
-    if 'image' not in request.files:
-        return jsonify({'error': 'No image provided'}), 400
-    
-    image_file = request.files['image']
-    field = request.form.get('field')  # title, description, tags
-    instruction = request.form.get('instruction', '')
-    current_content = request.form.get('current_content', '{}')
-    
-    if field not in ['title', 'description', 'tags']:
-        return jsonify({'error': 'Invalid field'}), 400
-    
-    try:
-        import json
-        current = json.loads(current_content)
-        
-        image_bytes = image_file.read()
-        image_base64 = encode_image_bytes_to_base64(image_bytes)
-        
-        new_value = regenerate_field(image_base64, field, current, instruction)
-        
-        return jsonify({field: new_value})
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
+    return jsonify({'error': 'AI generation has been disabled'}), 410
 
 @app.route('/api/seo-score', methods=['POST'])
-@jwt_required()
 def get_seo_score():
-    """Calculate SEO score for given content"""
-    data = request.get_json()
-    
-    seo = calculate_seo_score(
-        data.get('title', ''),
-        data.get('description', ''),
-        data.get('tags', [])
-    )
-    
-    return jsonify(seo)
+    return jsonify({'error': 'SEO scoring has been disabled'}), 410
 
 
 # ============== Etsy OAuth Routes (Login) ==============
@@ -1603,62 +1530,9 @@ def bulk_update_listings():
 
 
 @app.route('/api/shop/listings/<listing_id>/regenerate', methods=['POST'])
-@jwt_required()
 def regenerate_listing_content_route(listing_id):
-    """Regenerate AI content for an existing listing"""
-    user_id = get_jwt_identity()
-    access_token, shop_id, error = get_user_etsy_credentials(user_id)
-    
-    if error:
-        return jsonify({'error': error}), 401
-    
-    try:
-        data = request.get_json()
-        field = data.get('field', 'title')  # 'title', 'description', 'tags'
-        instruction = data.get('instruction', '')
-        image_rank = data.get('image_rank', 1)  # Which image to use for AI
-        
-        # Get listing images
-        images = get_listing_images(access_token, listing_id)
-        
-        if not images:
-            return jsonify({'error': 'Listing has no images for AI analysis'}), 400
-        
-        # Find image by rank or use first one
-        target_image = None
-        for img in images:
-            if img.get('rank') == image_rank:
-                target_image = img
-                break
-        
-        if not target_image:
-            target_image = images[0]
-        
-        # Get image URL and download for AI analysis
-        image_url = target_image.get('url_fullxfull') or target_image.get('url_570xN')
-        
-        if not image_url:
-            return jsonify({'error': 'Could not get image URL'}), 400
-        
-        # Download image
-        import requests as req
-        img_response = req.get(image_url)
-        if img_response.status_code != 200:
-            return jsonify({'error': 'Could not download image'}), 400
-        
-        image_base64 = encode_image_bytes_to_base64(img_response.content)
-        
-        # Regenerate using AI
-        result = regenerate_field(image_base64, field, instruction)
-        
-        return jsonify({
-            'field': field,
-            'value': result,
-            'image_used': image_rank
-        })
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    """AI regeneration disabled"""
+    return jsonify({'error': 'AI generation has been disabled'}), 410
 
 
 @app.route('/api/shop/listings/<listing_id>/images', methods=['POST'])

@@ -51,7 +51,7 @@ export default function PrivacyPolicyPage() {
                 To provide our services, we process:
               </p>
               <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
-                <li>Product images you upload for AI analysis</li>
+                <li>Product images you upload for listing creation</li>
                 <li>Listing titles, descriptions, tags, and pricing information</li>
                 <li>Shipping profiles, return policies, and shop sections from your Etsy account</li>
                 <li>Listing presets and templates you create within our app</li>
@@ -74,7 +74,7 @@ export default function PrivacyPolicyPage() {
               <ul className="list-disc pl-6 text-gray-700 space-y-2">
                 <li>Authenticate your Etsy account and maintain your session</li>
                 <li>Create, manage, and publish listings on your behalf</li>
-                <li>Generate AI-powered listing content (titles, descriptions, tags)</li>
+                <li>Create and manage listing content (titles, descriptions, tags)</li>
                 <li>Store your presets and templates for future use</li>
                 <li>Schedule listings for future publication</li>
                 <li>Improve our services and user experience</li>
@@ -111,10 +111,10 @@ export default function PrivacyPolicyPage() {
                 className="text-brand-primary hover:underline">Etsy's Privacy Policy</a>.
               </p>
 
-              <h3 className="text-lg font-medium text-gray-800 mb-3">5.2 AI Services (Groq)</h3>
+              <h3 className="text-lg font-medium text-gray-800 mb-3">5.2 Hosting (Render)</h3>
               <p className="text-gray-700">
-                We use Groq's AI services to analyze product images and generate listing content. 
-                Images are processed temporarily and are not stored by the AI service after processing.
+                Our application is hosted on Render's cloud platform. Your data is stored securely 
+                in accordance with Render's security practices.
               </p>
             </section>
 

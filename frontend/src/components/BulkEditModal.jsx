@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { 
-  X, Type, Tag, Image as ImageIcon, Sparkles, Loader2, Save, 
+  X, Type, Tag, Image as ImageIcon, Loader2, Save, 
   CheckCircle, AlertCircle, ChevronDown, ChevronUp
 } from 'lucide-react'
 import { api } from '../services/api'
@@ -15,11 +15,6 @@ const TABS = [
 export default function BulkEditModal({ listings, onClose, onComplete }) {
   const [activeTab, setActiveTab] = useState('titles')
   const [saving, setSaving] = useState(false)
-  const [regenerating, setRegenerating] = useState(false)
-  
-  // AI options
-  const [imageRank, setImageRank] = useState(1)
-  const [aiGuidance, setAiGuidance] = useState('')
   
   // Edits state - tracks changes per listing
   const [edits, setEdits] = useState(() => {
@@ -80,40 +75,6 @@ export default function BulkEditModal({ listings, onClose, onComplete }) {
     return Object.entries(edits)
       .filter(([_, data]) => data.selected)
       .map(([id]) => id)
-  }
-  
-  // Regenerate AI content for selected listings
-  const handleRegenerateAll = async () => {
-    const selectedIds = getSelectedIds()
-    if (selectedIds.length === 0) return
-    
-    setRegenerating(true)
-    const field = activeTab === 'titles' ? 'title' : 'tags'
-    
-    for (const listingId of selectedIds) {
-      try {
-        const result = await api.regenerateListingContent(
-          listingId, 
-          field, 
-          aiGuidance, 
-          imageRank
-        )
-        
-        if (field === 'title') {
-          updateEdit(listingId, 'title', result.value)
-        } else {
-          // Tags come back as array
-          const tagsStr = Array.isArray(result.value) 
-            ? result.value.join(', ') 
-            : result.value
-          updateEdit(listingId, 'tags', tagsStr)
-        }
-      } catch (error) {
-        console.error(`Failed to regenerate for ${listingId}:`, error)
-      }
-    }
-    
-    setRegenerating(false)
   }
   
   // Save changes
@@ -218,50 +179,11 @@ export default function BulkEditModal({ listings, onClose, onComplete }) {
                     {activeTab === 'images' && 'Manage Images'}
                   </h3>
                   <p className="text-sm text-gray-500">
-                    {activeTab === 'titles' && 'Edit listing titles individually or use AI to regenerate them'}
-                    {activeTab === 'tags' && 'Edit listing tags individually or use AI to regenerate them (max 13 per listing)'}
+                    {activeTab === 'titles' && 'Edit listing titles individually'}
+                    {activeTab === 'tags' && 'Edit listing tags individually (max 13 per listing)'}
                     {activeTab === 'images' && 'Upload images and configure where they\'ll be inserted across your listings'}
                   </p>
                 </div>
-                
-                {/* AI Regenerate Options (for titles and tags) */}
-                {(activeTab === 'titles' || activeTab === 'tags') && (
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm text-gray-600">Reference Image Rank</label>
-                      <select
-                        value={imageRank}
-                        onChange={(e) => setImageRank(parseInt(e.target.value))}
-                        className="px-2 py-1 border rounded text-sm"
-                      >
-                        {[1,2,3,4,5,6,7,8,9,10].map(n => (
-                          <option key={n} value={n}>{n}</option>
-                        ))}
-                      </select>
-                    </div>
-                    
-                    <input
-                      type="text"
-                      value={aiGuidance}
-                      onChange={(e) => setAiGuidance(e.target.value)}
-                      placeholder="AI Guidance Note (Optional)"
-                      className="px-3 py-1.5 border rounded-lg text-sm w-64"
-                    />
-                    
-                    <button
-                      onClick={handleRegenerateAll}
-                      disabled={regenerating || getSelectedIds().length === 0}
-                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
-                    >
-                      {regenerating ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Sparkles className="w-4 h-4" />
-                      )}
-                      Regenerate All Selected
-                    </button>
-                  </div>
-                )}
               </div>
               
               {/* Select All */}

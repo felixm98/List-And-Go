@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { X, Edit2, Trash2, ChevronDown, ChevronUp, Sparkles, Tag, Palette, Gift, Calendar, Heart, ChevronLeft, ChevronRight } from 'lucide-react'
-import SEOBadge from './SEOBadge'
+import { X, Edit2, Trash2, ChevronDown, ChevronUp, Tag, Palette, Gift, Calendar, Heart, ChevronLeft, ChevronRight } from 'lucide-react'
 
 function ListingCard({ listing, onUpdate, onRemove }) {
   const [isExpanded, setIsExpanded] = useState(false)
@@ -165,11 +164,6 @@ function ListingCard({ listing, onUpdate, onRemove }) {
           >
             <Trash2 className="w-4 h-4 text-red-500" />
           </button>
-        </div>
-        
-        {/* SEO Badge */}
-        <div className="absolute top-2 left-2">
-          <SEOBadge score={listing.seoScore} />
         </div>
       </div>
       
@@ -405,49 +399,48 @@ function ListingCard({ listing, onUpdate, onRemove }) {
                 
                 {/* Listing Attributes Display */}
                 {listing.listing_attributes && Object.keys(listing.listing_attributes).some(k => listing.listing_attributes[k]) && (
-                  <div className="p-3 bg-rose-50 rounded-lg">
-                    <h4 className="text-xs font-medium text-rose-600 uppercase tracking-wide mb-2 flex items-center gap-1">
+                  <div className="p-3 bg-brand-light rounded-lg">
+                    <h4 className="text-xs font-medium text-brand-primary uppercase tracking-wide mb-2 flex items-center gap-1">
                       <Tag className="w-3 h-3" />
                       Etsy-attribut
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {listing.listing_attributes.holiday && (
-                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white rounded-full border border-rose-200">
-                          <Calendar className="w-3 h-3 text-rose-500" />
+                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white rounded-full border border-brand-primary/20">
+                          <Calendar className="w-3 h-3 text-brand-primary" />
                           {listing.listing_attributes.holiday}
                         </span>
                       )}
                       {listing.listing_attributes.occasion && (
-                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white rounded-full border border-rose-200">
-                          <Gift className="w-3 h-3 text-rose-500" />
+                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white rounded-full border border-brand-primary/20">
+                          <Gift className="w-3 h-3 text-brand-primary" />
                           {listing.listing_attributes.occasion}
                         </span>
                       )}
                       {listing.listing_attributes.recipient && (
-                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white rounded-full border border-rose-200">
-                          <Heart className="w-3 h-3 text-rose-500" />
+                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white rounded-full border border-brand-primary/20">
+                          <Heart className="w-3 h-3 text-brand-primary" />
                           {listing.listing_attributes.recipient}
                         </span>
                       )}
                       {listing.listing_attributes.subject && (
-                        <span className="text-xs px-2 py-1 bg-white rounded-full border border-rose-200">
+                        <span className="text-xs px-2 py-1 bg-white rounded-full border border-brand-primary/20">
                           📌 {listing.listing_attributes.subject}
                         </span>
                       )}
                       {listing.listing_attributes.primary_color && (
-                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white rounded-full border border-rose-200">
-                          <Palette className="w-3 h-3 text-rose-500" />
+                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white rounded-full border border-brand-primary/20">
+                          <Palette className="w-3 h-3 text-brand-primary" />
                           {listing.listing_attributes.primary_color}
                         </span>
                       )}
                       {listing.listing_attributes.mood && (
-                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white rounded-full border border-rose-200">
-                          <Sparkles className="w-3 h-3 text-rose-500" />
-                          {listing.listing_attributes.mood}
+                        <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-white rounded-full border border-brand-primary/30">
+                          ✨ {listing.listing_attributes.mood}
                         </span>
                       )}
                       {listing.listing_attributes.style && Array.isArray(listing.listing_attributes.style) && listing.listing_attributes.style.map((s, i) => (
-                        <span key={i} className="text-xs px-2 py-1 bg-white rounded-full border border-rose-200">
+                        <span key={i} className="text-xs px-2 py-1 bg-white rounded-full border border-brand-primary/30">
                           🎨 {s}
                         </span>
                       ))}
