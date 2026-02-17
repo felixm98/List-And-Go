@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Store, Loader2, AlertCircle, ChevronDown, ChevronUp, Upload, Clock, CheckCircle, Eye, Rocket, Package } from 'lucide-react'
+import { Store, Loader2, AlertCircle, ChevronDown, ChevronUp, Upload, Clock, CheckCircle, Eye, Layers, Package } from 'lucide-react'
 import { api } from '../services/api'
 
 export default function LoginPage({ onEnterDemo }) {
@@ -76,7 +76,7 @@ export default function LoginPage({ onEnterDemo }) {
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-gradient-to-br from-brand-primary to-brand-dark rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <Rocket className="w-8 h-8 text-white" />
+              <Layers className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               List-And-Go
@@ -150,7 +150,7 @@ export default function LoginPage({ onEnterDemo }) {
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-brand-light rounded-xl flex items-center justify-center">
-                <Rocket className="w-5 h-5 text-brand-primary" />
+                <Layers className="w-5 h-5 text-brand-primary" />
               </div>
               <span className="text-lg font-semibold text-gray-900">How does it work?</span>
             </div>
